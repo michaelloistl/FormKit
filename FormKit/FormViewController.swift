@@ -8,104 +8,144 @@
 
 import Foundation
 
-class FormViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, FormTableViewCellDataSource, FormTableViewCellDelegate {
+public class FormViewController: UITableViewController, FormTableViewCellDataSource, FormTableViewCellDelegate {
     
-    let formManager = FormManager()
+    public let formManager = FormManager()
     
-    lazy var tableView: UITableView = {
-        let _tableView = UITableView(frame: CGRectZero, style: .Grouped)
-        _tableView.translatesAutoresizingMaskIntoConstraints = false
-        _tableView.tableFooterView = UIView()
-        _tableView.separatorInset = UIEdgeInsetsZero
-        _tableView.dataSource = self
-        _tableView.delegate = self
+    var visibleTableViewRect: CGRect {
+        var _visibleTableViewRect = tableView.bounds
+        _visibleTableViewRect.size.height = CGRectGetHeight(tableView.bounds) - tableView.contentInset.bottom
         
-        return _tableView
-        }()
+        return _visibleTableViewRect
+    }
     
-    // MARK: Override UIViewController Functions
+    // MARK: - Initializers
     
-    override func viewDidLoad() {
+    public override init(style: UITableViewStyle) {
+        super.init(style: style)
+    }
+
+    required public init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    // MARK: - Super
+    
+    override public func viewDidLoad() {
         super.viewDidLoad()
-        
-        view.addSubview(tableView)
-        
-        tableView.autoPinEdgesToSuperviewEdgesWithInsets(UIEdgeInsetsZero)
         
         setupForm()
     }
     
-    // MARK: Setup Functions
+    // MARK: - Methods
     
-    func setupForm() {
-        
+    // MARK: Setup
+    
+    public func setupForm() {
+
     }
     
-    // MARK: Functions
+    // MARK: - Protocols
     
     // MARK: UITableViewDataSource
     
-    func numberOfSectionsInTableView(tableView: UITableView) -> Int {
+    override public func numberOfSectionsInTableView(tableView: UITableView) -> Int {
         return formManager.numberOfSections()
     }
     
-    func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    override public func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return formManager.numberOfRowsInSection(section)
     }
     
-    func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
+    override public func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let tableViewCell = formManager.cellForRowAtIndexPath(indexPath) as FormTableViewCell
         return tableViewCell
     }
     
     // MARK: UITableViewDelegate
     
-    func tableView(tableView: UITableView, willDisplayCell cell: UITableViewCell, forRowAtIndexPath indexPath: NSIndexPath) {
+    public override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
+        tableView.deselectRowAtIndexPath(indexPath, animated: true)
+    }
+    
+    override public func tableView(tableView: UITableView, willDisplayCell cell: UITableViewCell, forRowAtIndexPath indexPath: NSIndexPath) {
         cell.separatorInset = UIEdgeInsetsZero
         cell.preservesSuperviewLayoutMargins = false
         cell.layoutMargins = UIEdgeInsetsZero
     }
     
-    func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
+    override public func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
         return formManager.heightForRowAtIndexPath(indexPath)
     }
         
     // MARK: FormTableViewCellDataSource
     
-    func valueForFormCell(sender: UITableViewCell, withIdentifier identifier: String) -> AnyObject? {
+    public func labelEdgeInsetsForFormCell(sender: FormTableViewCell, withIdentifier identifier: String) -> UIEdgeInsets {
+        return UIEdgeInsetsMake(0, 19, 0, 11)
+    }
+    
+    public func labelConfigurationForFormCell(sender: FormTableViewCell, withIdentifier identifier: String) -> [String: AnyObject] {
+        return [String: AnyObject]()
+    }
+
+    public func valueForFormCell(sender: FormTableViewCell, withIdentifier identifier: String) -> AnyObject? {
         return nil
     }
     
-    func valueInputEdgeInsetsForFormCell(sender: UITableViewCell, withIdentifier identifier: String) -> UIEdgeInsets {
+    public func valueEdgeInsetsForFormCell(sender: FormTableViewCell, withIdentifier identifier: String) -> UIEdgeInsets {
         return UIEdgeInsetsMake(0, 120, 0, 11)
     }
     
-    func labelEdgeInsetsForFormCell(sender: UITableViewCell, withIdentifier identifier: String) -> UIEdgeInsets {
-        return UIEdgeInsetsMake(0, 19, 0, 0)
+    public func valueConfigurationForFormCell(sender: FormTableViewCell, withIdentifier identifier: String) -> [String: AnyObject] {
+        return [String: AnyObject]()
     }
     
     // MARK: FormTableViewCellDelegate
     
-    func formCell(sender: UITableViewCell, withIdentifier identifier: String, didBecomeFirstResponder firstResponder: UIView?) {
+    public func formCell(sender: FormTableViewCell, withIdentifier identifier: String, didBecomeFirstResponder firstResponder: UIView?) {
+        if let indexPath = tableView.indexPathForCell(sender) {
+            let cellRect = tableView.rectForRowAtIndexPath(indexPath)
+            
+            let completelyVisible = visibleTableViewRect.contains(cellRect)
+
+            if !completelyVisible {
+                tableView.scrollToRowAtIndexPath(indexPath, atScrollPosition: .Bottom, animated: true)
+            }
+        }
+    }
+    
+    public func formCell(sender: FormTableViewCell, withIdentifier identifier: String, didChangeValue value: AnyObject?, forObjectType objectType:AnyClass?, valueKeyPath: String?) {
         
     }
     
-    func formCell(sender: UITableViewCell, withIdentifier identifier: String, didChangeValue value: AnyObject?, forObjectType objectType:AnyClass?, valueKeyPath: String?) {
-        
+    public func formCell(sender: FormTableViewCell, withIdentifier identifier: String, didChangeRowHeight rowHeight: CGFloat) {
+
     }
     
-    func formCell(sender: UITableViewCell, withIdentifier identifier: String, didChangeRowHeight rowHeight: CGFloat) {
-        
-    }
-    
-    func formCell(sender: UITableViewCell, withIdentifier identifier: String, didChangeRowVisibility visible: Bool) {
+    public func formCell(sender: FormTableViewCell, withIdentifier identifier: String, didChangeRowVisibility visible: Bool) {
 //        if isViewLoaded() && view.window != nil {
             formManager.updateVisibleFormCells()
             tableView.reloadData()
 //        }
     }
     
-    func formCell(sender: UITableViewCell, withIdentifier identifier: String, shouldValidateWithIdentifier validationIdentifier: String) -> Bool {
+    public func formCellDidRequestNextFormTableViewCell(sender: FormTableViewCell, withIdentifier identifier: String) {
+        if let nextFormCell = formManager.nextFormTableViewCell() {
+            if let indexPath = tableView.indexPathForCell(nextFormCell) {
+                let cellRect = tableView.rectForRowAtIndexPath(indexPath)
+                
+                let completelyVisible = visibleTableViewRect.contains(cellRect)
+                
+                nextFormCell.becomeFirstResponder()
+
+                if !completelyVisible {
+                    tableView.scrollToRowAtIndexPath(indexPath, atScrollPosition: .Bottom, animated: true)
+                }
+            }
+        }
+    }
+    
+    public func formCell(sender: FormTableViewCell, withIdentifier identifier: String, shouldValidateWithIdentifier validationIdentifier: String) -> Bool {
         return true
     }
     

@@ -13,4 +13,6 @@ Pod::Spec.new do |s|
     s.source_files = 'FormKit/*.{swift}'
 
     s.requires_arc = true
+
+    s.dependency 'PureLayout', '~> 3.0'
 end

@@ -9,9 +9,9 @@
 import Foundation
 import UIKit
 
-class FormManager: NSObject {
+public class FormManager: NSObject {
     
-    var formCells: Array<Array<FormTableViewCell>>? {
+    public var formCells: Array<Array<FormTableViewCell>>? {
         didSet {
             updateVisibleFormCells()
             updateAllFormCellValues()
@@ -25,13 +25,13 @@ class FormManager: NSObject {
     
     // MARK: - Methods
     
-    func updateAllFormCellValues() {
+    public func updateAllFormCellValues() {
         for formCell in allFormCells() {
             formCell.setValue()
         }
     }
     
-    func updateVisibleFormCells() {
+    public func updateVisibleFormCells() {
         var sections = Array<Array<FormTableViewCell>>()
         if let formCells = formCells {
             for section in formCells {
@@ -48,7 +48,7 @@ class FormManager: NSObject {
         visibleFormCells = sections
     }
     
-    func allFormCells() -> Array<FormTableViewCell> {
+    public func allFormCells() -> Array<FormTableViewCell> {
         var allFormCells = Array<FormTableViewCell>()
         if let visibleFormCells = visibleFormCells {
             for section in visibleFormCells {
@@ -58,17 +58,17 @@ class FormManager: NSObject {
         return allFormCells
     }
     
-    func formIsValid() -> Bool {
+    public func formIsValid(showErrorState: Bool = true) -> Bool {
         var isValid = true
         for formCell in allFormCells() {
-            if formCell.isValid() == false {
+            if formCell.isValid(showErrorState) == false {
                 isValid = false
             }
         }
         return isValid
     }
     
-    func formCellWithIdentifier(identifier: String) -> UITableViewCell? {
+    public func formCellWithIdentifier(identifier: String) -> UITableViewCell? {
         for cell in allFormCells() {
             if cell.identifier == identifier {
                 return cell
@@ -77,16 +77,43 @@ class FormManager: NSObject {
         return nil
     }
     
-    func formResignFirstResponder() {
+    public func formResignFirstResponder() {
         for cell in allFormCells() {
             cell.resignFirstResponder()
         }
     }
     
-    func setErrorState(errorState: Bool) {
+    public func setErrorState(errorState: Bool) {
         for formCell in allFormCells() {
             formCell.errorState = errorState
         }
+    }
+    
+    public func nextFormTableViewCell() -> FormTableViewCell? {
+        let allFormCells = self.allFormCells()
+        var firstResponderCell: FormTableViewCell?
+        for cell in allFormCells {
+            if cell.isFirstResponder() {
+                firstResponderCell = cell
+                break
+            }
+        }
+        
+        if let firstResponderCell = firstResponderCell {
+            if allFormCells.count > 1 {
+                if let index = allFormCells.indexOf(firstResponderCell) {
+                    var nextIndex = index + 1
+                    
+                    if nextIndex > (allFormCells.count - 1) {
+                        nextIndex = 0
+                    }
+                    
+                    return allFormCells[nextIndex]
+                }
+            }
+        }
+
+        return nil
     }
     
     // MARK: - Protocols

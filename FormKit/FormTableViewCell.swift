@@ -8,71 +8,64 @@
 
 import Foundation
 import UIKit
+import PureLayout
 
-//@objc protocol FormTableViewCellProtocol {
-//
-//    var identifier: String {get set}
-//    var objectType: AnyClass? {get set}
-//    var valueKeyPath: String? {get set}
-//    var value: AnyObject? {get set}
-//    var errorState: Bool {get set}
-//    var visible: Bool {get set}
-//    
-//    func setValue()
-//    func updateUI()
-//    func isEmpty() -> Bool
-//    func isValid() -> Bool
-//    
-//    func rowHeight() -> CGFloat
-//}
+public protocol FormTableViewCellDataSource {
+    func valueForFormCell(sender: FormTableViewCell, withIdentifier identifier: String) -> AnyObject?
 
-protocol FormTableViewCellDataSource {
-    func valueForFormCell(sender: UITableViewCell, withIdentifier identifier: String) -> AnyObject?
-    func valueInputEdgeInsetsForFormCell(sender: UITableViewCell, withIdentifier identifier: String) -> UIEdgeInsets
-    func labelEdgeInsetsForFormCell(sender: UITableViewCell, withIdentifier identifier: String) -> UIEdgeInsets
+    func labelEdgeInsetsForFormCell(sender: FormTableViewCell, withIdentifier identifier: String) -> UIEdgeInsets
+    func valueEdgeInsetsForFormCell(sender: FormTableViewCell, withIdentifier identifier: String) -> UIEdgeInsets
+    
+    func labelConfigurationForFormCell(sender: FormTableViewCell, withIdentifier identifier: String) -> [String: AnyObject]
+    func valueConfigurationForFormCell(sender: FormTableViewCell, withIdentifier identifier: String) -> [String: AnyObject]
 }
 
-protocol FormTableViewCellDelegate {
-    func formCell(sender: UITableViewCell, withIdentifier identifier: String, didBecomeFirstResponder firstResponder: UIView?)
+public protocol FormTableViewCellDelegate {
+    func formCell(sender: FormTableViewCell, withIdentifier identifier: String, didBecomeFirstResponder firstResponder: UIView?)
     
-    func formCell(sender: UITableViewCell, withIdentifier identifier: String, didChangeValue value: AnyObject?, forObjectType objectType:AnyClass?, valueKeyPath: String?)
-    func formCell(sender: UITableViewCell, withIdentifier identifier: String, didChangeRowHeight rowHeight: CGFloat)
-    func formCell(sender: UITableViewCell, withIdentifier identifier: String, didChangeRowVisibility visible: Bool)
+    func formCell(sender: FormTableViewCell, withIdentifier identifier: String, didChangeValue value: AnyObject?, forObjectType objectType:AnyClass?, valueKeyPath: String?)
+    func formCell(sender: FormTableViewCell, withIdentifier identifier: String, didChangeRowHeight rowHeight: CGFloat)
+    func formCell(sender: FormTableViewCell, withIdentifier identifier: String, didChangeRowVisibility visible: Bool)
+
+    func formCellDidRequestNextFormTableViewCell(sender: FormTableViewCell, withIdentifier identifier: String)
     
-    func formCell(sender: UITableViewCell, withIdentifier identifier: String, shouldValidateWithIdentifier validationIdentifier: String) -> Bool
+    func formCell(sender: FormTableViewCell, withIdentifier identifier: String, shouldValidateWithIdentifier validationIdentifier: String) -> Bool
 }
 
-class FormTableViewCell: UITableViewCell {
+public class FormTableViewCell: UITableViewCell {
     
-    struct Validation {
+    public struct Validation {
         let closure: (value: AnyObject?) -> Bool
         let errorMessage: String
         let identifier: String
     }
     
-    var identifier: String
+    public var labelRightEdgeIsLeftValueEdge = true
     
-    var objectType: AnyClass?
+    public var identifier: String
     
-    var valueKeyPath: String?
+    public var objectType: AnyClass?
+    
+    public var valueKeyPath: String?
 
-    var value: AnyObject? {
+    public var value: AnyObject? {
         didSet {
+            configValue()
             updateUI()
             delegate?.formCell(self, withIdentifier: identifier, didChangeValue: value, forObjectType: objectType, valueKeyPath: valueKeyPath)
         }
     }
     
-    var validate = true
+    public var validate = true
 
-    var isEditable = true
+    public var isEditable = true
     
-    var validations = Array<Validation>()
+    public var validations = Array<Validation>()
 
-    var dataSource: FormTableViewCellDataSource?
-    var delegate: FormTableViewCellDelegate?
+    public var dataSource: FormTableViewCellDataSource?
+    public var delegate: FormTableViewCellDelegate?
     
-    var visible: Bool = true {
+    public var visible: Bool = true {
         didSet {
             if visible != oldValue {
 
@@ -83,14 +76,14 @@ class FormTableViewCell: UITableViewCell {
         }
     }
     
-    var errorState: Bool = false {
+    public var errorState: Bool = false {
         didSet {
             contentView.backgroundColor = (errorState) ? UIColor.redColor().colorWithAlphaComponent(0.1) : UIColor.whiteColor()
         }
     }
     
-    var minRowHeight: CGFloat = 44.0
-    var maxRowHeight: CGFloat = 44.0
+    public var minRowHeight: CGFloat = 44.0
+    public var maxRowHeight: CGFloat = 44.0
     
     lazy var keyboardAccessoryView: KeyboardAccessoryView = {
         let _keyboardAccessoryView = KeyboardAccessoryView(frame: CGRectMake(0, 0, CGRectGetWidth(self.contentView.bounds), 44))
@@ -118,24 +111,24 @@ class FormTableViewCell: UITableViewCell {
         return _pickerClearButton
         }()
     
-    lazy var label: UILabel = {
+    public lazy var label: UILabel = {
         let _label = UILabel(frame: CGRectZero)
-        _label.font = UIFont.monoFontOfSize(12)
         
         return _label
         }()
     
     // BottomSeparatorView
-    lazy var bottomSeparatorView: UIView = {
+    public lazy var bottomSeparatorView: UIView = {
         let _bottomSeparatorView = UIView()
-        _bottomSeparatorView.backgroundColor = UIColor.RGB230Color()
+        _bottomSeparatorView.backgroundColor = UIColor.lightGrayColor()
+        _bottomSeparatorView.hidden = true
         
         return _bottomSeparatorView
         }()
     
-    // MARK: Initializers
+    // MARK: - Initializers
     
-    required init(identifier: String) {
+    required public init(identifier: String) {
         self.identifier = identifier
         super.init(style: .Default, reuseIdentifier: "")
         
@@ -149,7 +142,7 @@ class FormTableViewCell: UITableViewCell {
         pickerDoneButton.autoPinEdge(.Right, toEdge: .Right, ofView: keyboardAccessoryView, withOffset: -16)
     }
     
-    required init?(coder aDecoder: NSCoder) {
+    required public init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
@@ -157,16 +150,18 @@ class FormTableViewCell: UITableViewCell {
         NSNotificationCenter.defaultCenter().removeObserver(self)
     }
 
-    override func layoutSubviews() {
+    override public func layoutSubviews() {
         super.layoutSubviews()
         
+        configLabel()
+        
         let labelEdgeInsets = dataSource?.labelEdgeInsetsForFormCell(self, withIdentifier: identifier) ?? UIEdgeInsetsZero
-        let valueInputEdgeInsets = dataSource?.valueInputEdgeInsetsForFormCell(self, withIdentifier: identifier) ?? UIEdgeInsetsZero
+        let valueEdgeInsets = dataSource?.valueEdgeInsetsForFormCell(self, withIdentifier: identifier) ?? UIEdgeInsetsZero
         
         // Label
         let labelOriginX: CGFloat = labelEdgeInsets.left
         let labelOriginY: CGFloat = labelEdgeInsets.top
-        let labelSizeWidth: CGFloat = valueInputEdgeInsets.left - labelOriginX
+        let labelSizeWidth: CGFloat = (labelRightEdgeIsLeftValueEdge) ? valueEdgeInsets.left - labelOriginX : CGRectGetWidth(bounds) - labelEdgeInsets.left - labelEdgeInsets.right
         let labelSizeHeight: CGFloat = CGRectGetHeight(bounds) - labelEdgeInsets.top - labelEdgeInsets.bottom
         
         label.frame = CGRectMake(labelOriginX, labelOriginY, labelSizeWidth, labelSizeHeight)
@@ -180,18 +175,62 @@ class FormTableViewCell: UITableViewCell {
         bottomSeparatorView.frame = CGRectMake(bottomSeparatorViewOriginX, bottomSeparatorViewOriginY, bottomSeparatorViewWidth, bottomSeparatorViewHeight)
     }
     
-    // MARK: Override UIResponder Functions
+    // MARK: - Super
     
-    override func becomeFirstResponder() -> Bool {
+    override public func becomeFirstResponder() -> Bool {
         errorState = false
         return false
     }
     
-    override func resignFirstResponder() -> Bool {
+    override public func resignFirstResponder() -> Bool {
         return false
     }
     
-    // MARK: Validation Methods
+    // MARK: - Methods
+    
+    func configLabel() {
+        if let config = dataSource?.labelConfigurationForFormCell(self, withIdentifier: identifier) {
+            for (key, value) in config {
+                if label.respondsToSelector(Selector(key)) {
+                    label.setValue(value, forKey: key)
+                }
+            }
+        }
+    }
+
+    func configValue() {
+        
+    }
+    
+    func setValue() {
+        
+    }
+    
+    func updateUI() {
+        
+    }
+    
+    func isEmpty() -> Bool {
+        return value == nil
+    }
+    
+    func isValid(showErrorState: Bool = true) -> Bool {
+        if validate {
+            let isValid = validateValue() == nil
+            if showErrorState {
+                errorState = !isValid
+            }
+            return isValid
+        }
+        
+        return true
+    }
+    
+    func rowHeight() -> CGFloat {
+        return minRowHeight
+    }
+    
+    // MARK: Validations
     
     func validateValue() -> Array<Validation>? {
         var failedValidations = Array<Validation>()
@@ -207,12 +246,12 @@ class FormTableViewCell: UITableViewCell {
         return (failedValidations.count > 0) ? failedValidations : nil
     }
     
-    func addValidation(validation: (value: AnyObject?) -> Bool, withErrorMessage errorMessage: String, identifier: String = "") {
+    public func addValidation(validation: (value: AnyObject?) -> Bool, withErrorMessage errorMessage: String, identifier: String = "") {
         let validation = Validation(closure: validation, errorMessage: errorMessage, identifier: identifier)
         validations.append(validation)
     }
     
-    func addValidationForTypeEmailWithIdentifier(identifier: String) {
+    public func addValidationForTypeEmailWithIdentifier(identifier: String) {
         addValidation({ (value) -> Bool in
             if let stringValue = value as? String {
                 return stringValue.isValidEmail()
@@ -221,13 +260,13 @@ class FormTableViewCell: UITableViewCell {
         }, withErrorMessage: "Invalid email address", identifier: identifier)
     }
     
-    func addValidationForNotNilValueWithIdentifier(identifier: String) {
+    public func addValidationForNotNilValueWithIdentifier(identifier: String) {
         addValidation({ (value) -> Bool in
             return value != nil
         }, withErrorMessage: "Value must be not nil", identifier: identifier)
     }
 
-    func addValidationForTypeStringWithMinLength(length: Int, identifier: String) {
+    public func addValidationForTypeStringWithMinLength(length: Int, identifier: String) {
         let characterString = (length > 1) ? "characters" : "character"
         addValidation({ (value) -> Bool in
             if let stringValue = value as? String {
@@ -237,17 +276,17 @@ class FormTableViewCell: UITableViewCell {
         }, withErrorMessage: "Must be at least \(length) \(characterString)", identifier: identifier)
     }
     
-    func addValidationForTypeStringWithMaxLength(length: Int, identifier: String) {
+    public func addValidationForTypeStringWithMaxLength(length: Int, identifier: String) {
         let characterString = (length > 1) ? "characters" : "character"
         addValidation({ (value) -> Bool in
             if let stringValue = value as? String {
                 return stringValue.characters.count <= length
             }
-            return false
+            return true
             }, withErrorMessage: "Must be at most \(length) \(characterString)", identifier: identifier)
     }
     
-    func addValidationForTypeNumericWithMinNumber(number: Double, identifier: String) {
+    public func addValidationForTypeNumericWithMinNumber(number: Double, identifier: String) {
         addValidation({ (value) -> Bool in
             if let doubleValue = value?.doubleValue {
                 return doubleValue >= number
@@ -256,7 +295,7 @@ class FormTableViewCell: UITableViewCell {
         }, withErrorMessage: "Must be at least \(number)", identifier: identifier)
     }
     
-    func addValidationForTypeNumericWithMaxNumber(number: Double, identifier: String) {
+    public func addValidationForTypeNumericWithMaxNumber(number: Double, identifier: String) {
         addValidation({ (value) -> Bool in
             if let doubleValue = value?.doubleValue {
                 return doubleValue <= number
@@ -265,7 +304,7 @@ class FormTableViewCell: UITableViewCell {
             }, withErrorMessage: "Must be at least \(number)", identifier: identifier)
     }
     
-    // MARK: - IBACTION Methods
+    // MARK: Actions
     
     func pickerClearButtonTouchedUpInside(sender: UIButton) {
 
@@ -274,122 +313,136 @@ class FormTableViewCell: UITableViewCell {
     func pickerDoneButtonTouchedUpInside(sender: UIButton) {
 
     }
-    
-    // MARK: FormTableViewCellProtocol
-    
-    func setValue() {
-
-    }
-    
-    func updateUI() {
-        
-    }
-    
-    func isEmpty() -> Bool {
-        return value == nil
-    }
-    
-    func isValid() -> Bool {
-        if validate {
-            let isValid = validateValue() == nil
-            errorState = !isValid
-            return isValid
-        }
-        
-        return true
-    }
-    
-    func rowHeight() -> CGFloat {
-        return minRowHeight
-    }
 }
 
 // MARK: - FormTextInputTableViewCell
 
-class FormTextInputTableViewCell: FormTableViewCell {
+public class FormTextInputTableViewCell: FormTableViewCell {
     
-    var characterlimit: Int = 0
+    var characterlimit: Int = 0 {
+        didSet {
+            characterLabel.hidden = characterlimit == 0
+            updateCharacterLabelWithCharacterCount(0)
+        }
+    }
     
-//    lazy var 
+    var characterLabelValidTextColor = UIColor.lightGrayColor()
+    var characterLabelInvalidTextColor = UIColor.redColor()
     
+    public lazy var characterLabel: UILabel = {
+        let _characterLabel = UILabel()
+        _characterLabel.textAlignment = .Right
+        _characterLabel.hidden = true
+        
+        return _characterLabel
+        }()
+    
+    // MARK: - Initializers
+    
+    required public init(identifier: String) {
+        super.init(identifier: identifier)
+        
+        selectionStyle = .None
+        contentView.clipsToBounds = true
+        
+        contentView.addSubview(characterLabel)
+    }
+    
+    required public init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    // MARK: - Super
+    
+    override public func layoutSubviews() {
+        super.layoutSubviews()
+        
+        let valueEdgeInsets = dataSource?.valueEdgeInsetsForFormCell(self, withIdentifier: identifier) ?? UIEdgeInsetsZero
+        
+        let originX: CGFloat = valueEdgeInsets.left
+        let originY: CGFloat = CGRectGetHeight(bounds) - valueEdgeInsets.bottom
+        let sizeWidth: CGFloat = CGRectGetWidth(bounds) - valueEdgeInsets.left - valueEdgeInsets.right
+        let sizeHeight: CGFloat = valueEdgeInsets.bottom
+        
+        characterLabel.frame = CGRectMake(originX, originY, sizeWidth, sizeHeight)
+    }
+    
+    // MARK: - Methods
+    
+    func updateCharacterLabelWithCharacterCount(count: Int) {
+        if characterlimit > 0 {
+            let remainingCharacters = characterlimit - count
+            characterLabel.text = "\(remainingCharacters)"
+            characterLabel.textColor = (remainingCharacters < 0) ? characterLabelInvalidTextColor : characterLabelValidTextColor
+            characterLabel.hidden = false
+        } else {
+            characterLabel.hidden = true
+        }
+    }
+    
+    func nextFormTableViewCell() {
+        delegate?.formCellDidRequestNextFormTableViewCell(self, withIdentifier: identifier)
+    }
 }
 
 // MARK: - FormTextFieldTableViewCell
 
-class FormTextFieldTableViewCell: FormTextInputTableViewCell, UITextFieldDelegate {
+public class FormTextFieldTableViewCell: FormTextInputTableViewCell, UITextFieldDelegate {
     
-    lazy var textField: UITextField = {
+    public lazy var textField: UITextField = {
         let _textField = UITextField()
         _textField.delegate = self
         _textField.addTarget(self, action: Selector("textFieldDidChange:"), forControlEvents: .EditingChanged)
-
+        _textField.backgroundColor = UIColor.clearColor()
+        
         return _textField
         }()
     
-    // MARK: Initializers
+    // MARK: - Initializers
     
-    required init(identifier: String) {
+    required public init(identifier: String) {
         super.init(identifier: identifier)
-
-        selectionStyle = .None
         
-        contentView.addSubview(textField)
+        contentView.insertSubview(textField, atIndex: 0)
     }
     
-    required init?(coder aDecoder: NSCoder) {
+    required public init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
-    // MARK: Override UIResponder Functions
+    // MARK: - Super
     
-    override func becomeFirstResponder() -> Bool {
+    override public func isFirstResponder() -> Bool {
+        return textField.isFirstResponder()
+    }
+    
+    override public func becomeFirstResponder() -> Bool {
         return textField.becomeFirstResponder()
     }
     
-    override func resignFirstResponder() -> Bool {
+    override public func resignFirstResponder() -> Bool {
         return textField.resignFirstResponder()
     }
     
-    override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
+    override public func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
         becomeFirstResponder()
     }
     
-    // MARK: Override UIView Functions
-    
-    override func layoutSubviews() {
+    override public func layoutSubviews() {
         super.layoutSubviews()
         
-        let valueInputEdgeInsets = dataSource?.valueInputEdgeInsetsForFormCell(self, withIdentifier: identifier) ?? UIEdgeInsetsZero
+        let valueEdgeInsets = dataSource?.valueEdgeInsetsForFormCell(self, withIdentifier: identifier) ?? UIEdgeInsetsZero
         
         // TextField
-        let textFieldOriginX: CGFloat = valueInputEdgeInsets.left
-        let textFieldOriginY: CGFloat = valueInputEdgeInsets.top
-        let textFieldSizeWidth: CGFloat = CGRectGetWidth(bounds) - valueInputEdgeInsets.left - valueInputEdgeInsets.right
-        let textFieldSizeHeight: CGFloat = CGRectGetHeight(bounds) - valueInputEdgeInsets.top - valueInputEdgeInsets.bottom
+        let textFieldOriginX: CGFloat = valueEdgeInsets.left
+        let textFieldOriginY: CGFloat = valueEdgeInsets.top
+        let textFieldSizeWidth: CGFloat = CGRectGetWidth(bounds) - valueEdgeInsets.left - valueEdgeInsets.right
+        let textFieldSizeHeight: CGFloat = CGRectGetHeight(bounds) - valueEdgeInsets.top - valueEdgeInsets.bottom
         
         textField.frame = CGRectMake(textFieldOriginX, textFieldOriginY, textFieldSizeWidth, textFieldSizeHeight)
     }
     
-    // MARK: UITextFieldDelegate
-    
-    func textFieldDidChange(textField: UITextField) {
-        value = textField.text
-    }
-    
-    func textFieldShouldBeginEditing(textField: UITextField) -> Bool {
-        return isEditable
-    }
-    
-    func textFieldDidBeginEditing(textField: UITextField) {
-        errorState = false
-        delegate?.formCell(self, withIdentifier: identifier, didBecomeFirstResponder: textField)
-    }
-    
-    func textFieldDidEndEditing(textField: UITextField) {
-
-    }
-    
-    // MARK: FormTableViewCellProtocol
+    // MARK: - Methods
     
     override func setValue() {
         value = dataSource?.valueForFormCell(self, withIdentifier: identifier) as? String
@@ -405,20 +458,246 @@ class FormTextFieldTableViewCell: FormTextInputTableViewCell, UITextFieldDelegat
         }
         return true
     }
+    
+    // MARK: - Protocols
+    
+    // MARK: UITextFieldDelegate
+    
+    public func textFieldShouldReturn(textField: UITextField) -> Bool {
+        if textField.returnKeyType == .Next {
+            nextFormTableViewCell()
+        }
+        
+        return true
+    }
+    
+    public func textFieldDidChange(textField: UITextField) {
+        value = textField.text
+        updateCharacterLabelWithCharacterCount(textField.text?.characters.count ?? 0)
+    }
+    
+    public func textFieldShouldBeginEditing(textField: UITextField) -> Bool {
+        return isEditable
+    }
+    
+    public func textFieldDidBeginEditing(textField: UITextField) {
+        errorState = false
+        delegate?.formCell(self, withIdentifier: identifier, didBecomeFirstResponder: textField)
+    }
+    
+    public func textFieldDidEndEditing(textField: UITextField) {
+
+    }
+}
+
+// MARK: - FormTextViewTableViewCell
+
+public class FormTextViewTableViewCell: FormTextInputTableViewCell, NSLayoutManagerDelegate, UITextViewDelegate {
+    
+    var allowLineBreak = true
+    
+    var contentHeight: CGFloat = 0 {
+        didSet {
+            if contentHeight != oldValue {
+                delegate?.formCell(self, withIdentifier: identifier, didChangeRowHeight: rowHeight())
+            }
+        }
+    }
+    
+    public lazy var textView: TextView = {
+        let _textView = TextView(frame: CGRectZero, textContainer: self.textContainer)
+        _textView.delegate = self
+        _textView.font = self.textLabel?.font
+        _textView.backgroundColor = UIColor.clearColor()
+        
+        return _textView
+        }()
+    
+    // TextStorage
+    lazy var textStorage: NSTextStorage = {
+        let attributes: [String: AnyObject] = [NSFontAttributeName: self.textLabel!.font]
+        
+        var attributedString = NSAttributedString(string: "", attributes: attributes)
+        
+        let _textStorage = NSTextStorage()
+        _textStorage.appendAttributedString(attributedString)
+        
+        return _textStorage
+        }()
+    
+    // LayoutManager
+    lazy var textLayoutManager: NSLayoutManager = {
+        let _textLayoutManager = NSLayoutManager()
+        _textLayoutManager.delegate = self
+        
+        return _textLayoutManager
+        }()
+    
+    // TextContainer
+    lazy var textContainer: NSTextContainer = {
+        let _textContainer = NSTextContainer(size: CGSizeMake(CGRectGetWidth(self.bounds), CGFloat.max))
+        _textContainer.widthTracksTextView = true
+        self.textLayoutManager.addTextContainer(_textContainer)
+        self.textStorage.addLayoutManager(self.textLayoutManager)
+        
+        return _textContainer
+        }()
+    
+    // MARK: Initializers
+    
+    required public init(identifier: String) {
+        super.init(identifier: identifier)
+        
+        maxRowHeight = 88.0
+        
+        contentView.insertSubview(textView, atIndex: 0)
+    }
+    
+    required public init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    // MARK: Override UIResponder Functions
+    
+    override public func isFirstResponder() -> Bool {
+        return textView.isFirstResponder()
+    }
+
+    override public func becomeFirstResponder() -> Bool {
+        return textView.becomeFirstResponder()
+    }
+    
+    override public func resignFirstResponder() -> Bool {
+        return textView.resignFirstResponder()
+    }
+    
+    override public func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
+        becomeFirstResponder()
+    }
+    
+    // MARK: Override UIView Functions
+    
+    override public func layoutSubviews() {
+        super.layoutSubviews()
+        
+        let valueEdgeInsets = dataSource?.valueEdgeInsetsForFormCell(self, withIdentifier: identifier) ?? UIEdgeInsetsZero
+        
+        textView.textContainerInset.top = valueEdgeInsets.top
+        
+        // TextView
+        let textViewOriginX: CGFloat = valueEdgeInsets.left
+        let textViewOriginY: CGFloat = 0
+        let textViewSizeWidth: CGFloat = CGRectGetWidth(bounds) - valueEdgeInsets.left - valueEdgeInsets.right
+        let textViewSizeHeight: CGFloat = rowHeight() - valueEdgeInsets.bottom
+        
+        textView.frame = CGRectMake(textViewOriginX, textViewOriginY, textViewSizeWidth, textViewSizeHeight)
+        
+        // TextContainer
+        textContainer.size = CGSizeMake(CGRectGetWidth(textView.bounds), CGFloat.max)
+
+        // TextLabel
+        var textLabelRect = textLabel?.frame ?? bounds
+        textLabelRect.size.height = 44.0
+        
+        textLabel?.frame = textLabelRect
+    }
+    
+    // MARK: Methods
+
+    
+    // MARK: UITextViewDelegate
+    
+    public func textView(textView: UITextView, shouldChangeTextInRange range: NSRange, replacementText text: String) -> Bool {
+        if text == "\n" {
+            if textView.returnKeyType == .Next {
+                nextFormTableViewCell()
+            }
+
+            return allowLineBreak
+        }
+        
+        return true
+    }
+    
+    public func textViewDidChange(textView: UITextView) {
+        
+        layoutSubviews()
+        
+        value = textView.text
+        contentHeight = textView.contentSize.height
+        updateCharacterLabelWithCharacterCount(textView.text?.characters.count ?? 0)
+
+        let valueEdgeInsets = dataSource?.valueEdgeInsetsForFormCell(self, withIdentifier: identifier) ?? UIEdgeInsetsZero
+        let textViewHeight = CGRectGetHeight(bounds) - valueEdgeInsets.bottom
+        let textHeight = textView.text?.boundingRectHeightWithMaxWidth(CGRectGetWidth(textView.bounds), font: textView.font!) ?? 0
+        
+        textView.scrollEnabled = textHeight > textViewHeight
+    }
+    
+    public func textViewShouldBeginEditing(textView: UITextView) -> Bool {
+        return isEditable
+    }
+    
+    public func textViewDidBeginEditing(textView: UITextView) {
+        errorState = false
+        delegate?.formCell(self, withIdentifier: identifier, didBecomeFirstResponder: textView)
+    }
+    
+    public func textViewDidEndEditing(textView: UITextView) {
+
+    }
+    
+    // MARK: ScrollViewDelegate
+
+    public func scrollViewDidScroll(scrollView: UIScrollView) {
+
+    }
+    
+    // MARK: FormTableViewCellProtocol
+    
+    override func setValue() {
+        value = dataSource?.valueForFormCell(self, withIdentifier: identifier) as? String
+        layoutSubviews()
+    }
+    
+    override func updateUI() {
+        if let text = value as? String {
+            if textView.text != text {
+                textView.text = ""
+                textView.insertText(text)
+            }
+        }
+    }
+    
+    override func isEmpty() -> Bool {
+        if let text = textView.text {
+            return text.characters.count == 0
+        }
+        return true
+    }
+    
+    override func rowHeight() -> CGFloat {
+        if visible {
+            let valueEdgeInsets = dataSource?.valueEdgeInsetsForFormCell(self, withIdentifier: identifier) ?? UIEdgeInsetsZero
+            let textHeight = textView.text?.boundingRectHeightWithMaxWidth(CGRectGetWidth(textView.bounds), font: textView.font!) ?? 0
+            return min(max(textHeight + valueEdgeInsets.top + valueEdgeInsets.bottom, minRowHeight), maxRowHeight)
+        }
+        return 0
+    }
 }
 
 // MARK: - FormDatePickerTableViewCell
 
-class FormDatePickerTableViewCell: FormTextFieldTableViewCell {
+public class FormDatePickerTableViewCell: FormTextFieldTableViewCell {
     
-    lazy var datePicker: UIDatePicker = {
+    public lazy var datePicker: UIDatePicker = {
         let _datePicker = UIDatePicker()
         _datePicker.addTarget(self, action: Selector("datePickerDidChangeValue:"), forControlEvents: .ValueChanged)
         
         return _datePicker
-    }()
+        }()
     
-    lazy var dateFormatter: NSDateFormatter = {
+    public lazy var dateFormatter: NSDateFormatter = {
         let _dateFormatter = NSDateFormatter()
         _dateFormatter.dateStyle = .MediumStyle
         _dateFormatter.timeStyle = .NoStyle
@@ -428,7 +707,7 @@ class FormDatePickerTableViewCell: FormTextFieldTableViewCell {
     
     // MARK: Initializers
     
-    required init(identifier: String) {
+    required public init(identifier: String) {
         super.init(identifier: identifier)
         
         selectionStyle = .None
@@ -438,7 +717,7 @@ class FormDatePickerTableViewCell: FormTextFieldTableViewCell {
         textField.inputAccessoryView = keyboardAccessoryView
     }
     
-    required init?(coder aDecoder: NSCoder) {
+    required public init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
@@ -480,191 +759,11 @@ class FormDatePickerTableViewCell: FormTextFieldTableViewCell {
     }
 }
 
-// MARK: - FormTextViewTableViewCell
-
-class FormTextViewTableViewCell: FormTextInputTableViewCell, NSLayoutManagerDelegate, UITextViewDelegate {
-    
-    var allowLineBreak = true
-    
-    var contentHeight: CGFloat = 0 {
-        didSet {
-            if contentHeight != oldValue {
-                delegate?.formCell(self, withIdentifier: identifier, didChangeRowHeight: rowHeight())
-            }
-        }
-    }
-    
-    lazy var textView: TextView = {
-        let _textView = TextView(frame: CGRectZero, textContainer: self.textContainer)
-        _textView.delegate = self
-        _textView.font = self.textLabel?.font
-        _textView.backgroundColor = UIColor.clearColor()
-        
-        return _textView
-        }()
-    
-    // TextStorage
-    lazy var textStorage: NSTextStorage = {
-        let attributes: [String: AnyObject] = [NSFontAttributeName: self.textLabel!.font]
-        
-        var attributedString = NSAttributedString(string: "", attributes: attributes)
-        
-        let _textStorage = NSTextStorage()
-        _textStorage.appendAttributedString(attributedString)
-        
-        return _textStorage
-        }()
-    
-    // LayoutManager
-    lazy var textLayoutManager: NSLayoutManager = {
-        let _textLayoutManager = NSLayoutManager()
-        _textLayoutManager.delegate = self
-        
-        return _textLayoutManager
-        }()
-    
-    // TextContainer
-    lazy var textContainer: NSTextContainer = {
-        let _textContainer = NSTextContainer(size: CGSizeMake(CGRectGetWidth(self.bounds), CGFloat.max))
-        _textContainer.widthTracksTextView = true
-        self.textLayoutManager.addTextContainer(_textContainer)
-        self.textStorage.addLayoutManager(self.textLayoutManager)
-        
-        return _textContainer
-        }()
-    
-    // MARK: Initializers
-    
-    required init(identifier: String) {
-        super.init(identifier: identifier)
-        
-        maxRowHeight = 88.0
-        
-        selectionStyle = .None
-        contentView.clipsToBounds = true
-        
-        contentView.addSubview(textView)
-    }
-    
-    required init?(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
-    // MARK: Override UIResponder Functions
-    
-    override func becomeFirstResponder() -> Bool {
-        return textView.becomeFirstResponder()
-    }
-    
-    override func resignFirstResponder() -> Bool {
-        return textView.resignFirstResponder()
-    }
-    
-    override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
-        becomeFirstResponder()
-    }
-    
-    // MARK: Override UIView Functions
-    
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        
-        let valueInputEdgeInsets = dataSource?.valueInputEdgeInsetsForFormCell(self, withIdentifier: identifier) ?? UIEdgeInsetsZero
-        
-        let contentOffset = textView.contentOffset
-        let offset: CGFloat = (CGRectGetHeight(bounds) == maxRowHeight) ? -11.5 : 11.5
-        
-        // TextView
-        let textViewOriginX: CGFloat = valueInputEdgeInsets.left
-        let textViewOriginY: CGFloat = valueInputEdgeInsets.top + 11.5
-        let textViewSizeWidth: CGFloat = CGRectGetWidth(bounds) - valueInputEdgeInsets.left - valueInputEdgeInsets.right
-        let textViewSizeHeight: CGFloat = CGRectGetHeight(bounds) + offset - valueInputEdgeInsets.top - valueInputEdgeInsets.bottom
-        
-        textView.frame = CGRectMake(textViewOriginX, textViewOriginY, textViewSizeWidth, textViewSizeHeight)
-        
-        // TextContainer
-        textContainer.size = CGSizeMake(CGRectGetWidth(textView.bounds), CGFloat.max)
-
-        // TextLabel
-        var textLabelRect = textLabel?.frame ?? bounds
-        textLabelRect.size.height = 44.0
-        
-        textLabel?.frame = textLabelRect
-        
-        textView.contentOffset = contentOffset
-    }
-    
-    // MARK: NSLayoutManagerDelegate
-    
-    // MARK: UITextViewDelegate
-    
-    
-    
-    func textView(textView: UITextView, shouldChangeTextInRange range: NSRange, replacementText text: String) -> Bool {
-        if text == "\n" {
-            return allowLineBreak
-        }
-        
-        return true
-    }
-    
-    func textViewDidChange(textView: UITextView) {
-        
-        value = textView.text
-        contentHeight = textView.contentSize.height
-    }
-    
-    func textViewShouldBeginEditing(textView: UITextView) -> Bool {
-        return isEditable
-    }
-    
-    func textViewDidBeginEditing(textView: UITextView) {
-        errorState = false
-        delegate?.formCell(self, withIdentifier: identifier, didBecomeFirstResponder: textView)
-    }
-    
-    func textViewDidEndEditing(textView: UITextView) {
-
-    }
-    
-    // MARK: ScrollViewDelegate
-
-    func scrollViewDidScroll(scrollView: UIScrollView) {
-
-    }
-    
-    // MARK: FormTableViewCellProtocol
-    
-    override func setValue() {
-        value = dataSource?.valueForFormCell(self, withIdentifier: identifier) as? String
-        layoutSubviews()
-    }
-    
-    override func updateUI() {
-        textView.text = value as? String
-    }
-    
-    override func isEmpty() -> Bool {
-        if let text = textView.text {
-            return text.characters.count == 0
-        }
-        return true
-    }
-    
-    override func rowHeight() -> CGFloat {
-        if visible {
-            let textHeight = textView.text?.boundingRectHeightWithMaxWidth(CGRectGetWidth(textView.bounds), font: textView.font!) ?? 0
-            return min(max(textHeight + 11.5 + 11.5, minRowHeight), maxRowHeight)
-        }
-        return 0
-    }
-}
-
 // MARK: - FormSwitchTableViewCell
 
-class FormSwitchTableViewCell: FormTableViewCell {
+public class FormSwitchTableViewCell: FormTableViewCell {
     
-    lazy var switchView: UISwitch = {
+    public lazy var switchView: UISwitch = {
         let _switchView = UISwitch()
         _switchView.addTarget(self, action: Selector("switchDidChangeValue:"), forControlEvents: .ValueChanged)
         
@@ -673,7 +772,7 @@ class FormSwitchTableViewCell: FormTableViewCell {
     
     // MARK: Initializers
     
-    required init(identifier: String) {
+    required public init(identifier: String) {
         super.init(identifier: identifier)
         
         selectionStyle = .None
@@ -681,20 +780,20 @@ class FormSwitchTableViewCell: FormTableViewCell {
         contentView.addSubview(switchView)
     }
     
-    required init?(coder aDecoder: NSCoder) {
+    required public init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
     // MARK: Override UIView Functions
     
-    override func layoutSubviews() {
+    override public func layoutSubviews() {
         super.layoutSubviews()
         
-        let valueInputEdgeInsets = dataSource?.valueInputEdgeInsetsForFormCell(self, withIdentifier: identifier) ?? UIEdgeInsetsZero
+        let valueEdgeInsets = dataSource?.valueEdgeInsetsForFormCell(self, withIdentifier: identifier) ?? UIEdgeInsetsZero
         
         // Switch
         switchView.sizeToFit()
-        let switchOriginX: CGFloat = CGRectGetWidth(bounds) - CGRectGetWidth(switchView.bounds) - valueInputEdgeInsets.right
+        let switchOriginX: CGFloat = CGRectGetWidth(bounds) - CGRectGetWidth(switchView.bounds) - valueEdgeInsets.right
         let switchOriginY: CGFloat = (CGRectGetHeight(bounds) - CGRectGetHeight(switchView.bounds)) / 2.0
         let switchSizeWidth: CGFloat = CGRectGetWidth(switchView.bounds)
         let switchSizeHeight: CGFloat = CGRectGetHeight(switchView.bounds)
@@ -725,85 +824,85 @@ class FormSwitchTableViewCell: FormTableViewCell {
 
 // MARK: - FormSelectionTableViewCell
 
-class FormSelectionTableViewCell: FormTableViewCell {
-    
-    var selectionValueKeyPath: String?
-    var sortDescriptors: Array<RLMSortDescriptor>?
-    var allowsMultipleSelection = true
-    var selectionViewControllerClass: UIViewController.Type?
-    
-    lazy var valueLabel: UILabel = {
-        let _valueLabel = UILabel()
-        _valueLabel.textColor = UIColor.grayColor()
-        _valueLabel.font = self.textLabel?.font
-        _valueLabel.textAlignment = .Right
-        
-        return _valueLabel
-    }()
-    
-    // MARK: Initializers
-    
-    required init(identifier: String) {
-        super.init(identifier: identifier)
-        
-        accessoryType = .DisclosureIndicator
-        
-        contentView.addSubview(valueLabel)
-    }
-    
-    required init?(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
-    // MARK: Override UIView Functions
-    
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        
-        let valueInputEdgeInsets = dataSource?.valueInputEdgeInsetsForFormCell(self, withIdentifier: identifier) ?? UIEdgeInsetsZero
-        
-        // ValueLabel
-        let sizeWidth: CGFloat = CGRectGetWidth(contentView.bounds) - valueInputEdgeInsets.left - valueInputEdgeInsets.right
-        let sizeHeight: CGFloat = CGRectGetHeight(contentView.bounds) - valueInputEdgeInsets.top - valueInputEdgeInsets.bottom
-        
-        valueLabel.frame = CGRectMake(valueInputEdgeInsets.left, valueInputEdgeInsets.top, sizeWidth, sizeHeight)
-    }
-    
-    // MARK: FormTableViewCellProtocol
-    
-    override func setValue() {
-        value = dataSource?.valueForFormCell(self, withIdentifier: identifier) as? Array<AnyObject> ?? Array<AnyObject>()
-    }
-    
-    override func updateUI() {
-        
-        if allowsMultipleSelection {
-            if let array = value as? Array<AnyObject> {
-                valueLabel.text = "\(array.count)"
-            } else {
-                valueLabel.text = "0"
-            }
-        } else {
-            valueLabel.text = nil
-        }
-    }
-    
-    override func isEmpty() -> Bool {
-        return false
-    }
-}
+//class FormSelectionTableViewCell: FormTableViewCell {
+//    
+//    var selectionValueKeyPath: String?
+//    var sortDescriptors: Array<SortDescriptor>?
+//    var allowsMultipleSelection = true
+//    var selectionViewControllerClass: UIViewController.Type?
+//    
+//    lazy var valueLabel: UILabel = {
+//        let _valueLabel = UILabel()
+//        _valueLabel.textColor = UIColor.grayColor()
+//        _valueLabel.font = self.textLabel?.font
+//        _valueLabel.textAlignment = .Right
+//        
+//        return _valueLabel
+//    }()
+//    
+//    // MARK: Initializers
+//    
+//    required init(identifier: String) {
+//        super.init(identifier: identifier)
+//        
+//        accessoryType = .DisclosureIndicator
+//        
+//        contentView.addSubview(valueLabel)
+//    }
+//    
+//    required init?(coder aDecoder: NSCoder) {
+//        fatalError("init(coder:) has not been implemented")
+//    }
+//    
+//    // MARK: Override UIView Functions
+//    
+//    override func layoutSubviews() {
+//        super.layoutSubviews()
+//        
+//        let valueInputEdgeInsets = dataSource?.valueInputEdgeInsetsForFormCell(self, withIdentifier: identifier) ?? UIEdgeInsetsZero
+//        
+//        // ValueLabel
+//        let sizeWidth: CGFloat = CGRectGetWidth(contentView.bounds) - valueInputEdgeInsets.left - valueInputEdgeInsets.right
+//        let sizeHeight: CGFloat = CGRectGetHeight(contentView.bounds) - valueInputEdgeInsets.top - valueInputEdgeInsets.bottom
+//        
+//        valueLabel.frame = CGRectMake(valueInputEdgeInsets.left, valueInputEdgeInsets.top, sizeWidth, sizeHeight)
+//    }
+//    
+//    // MARK: FormTableViewCellProtocol
+//    
+//    override func setValue() {
+//        value = dataSource?.valueForFormCell(self, withIdentifier: identifier) as? Array<AnyObject> ?? Array<AnyObject>()
+//    }
+//    
+//    override func updateUI() {
+//        
+//        if allowsMultipleSelection {
+//            if let array = value as? Array<AnyObject> {
+//                valueLabel.text = "\(array.count)"
+//            } else {
+//                valueLabel.text = "0"
+//            }
+//        } else {
+//            valueLabel.text = nil
+//        }
+//    }
+//    
+//    override func isEmpty() -> Bool {
+//        return false
+//    }
+//}
 
 // MARK: - FormButtonTableViewCell
 
-class FormButtonTableViewCell: FormTableViewCell {
+public class FormButtonTableViewCell: FormTableViewCell {
     
     // MARK: Initializers
     
-    required init(identifier: String) {
+    required public init(identifier: String) {
         super.init(identifier: identifier)
     }
     
-    required init?(coder aDecoder: NSCoder) {
+    required public init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
@@ -818,11 +917,22 @@ extension String {
         let numberOfMatches = regularExpression?.numberOfMatchesInString(self, options: [], range: NSMakeRange(0, self.characters.count))
         return numberOfMatches > 0
     }
+    
+    func boundingRectHeightWithMaxWidth(maxWidth: CGFloat, font: UIFont) -> CGFloat {
+        let attributes: [String : AnyObject] = [NSFontAttributeName: font]
+        return boundingRectHeightWithMaxWidth(maxWidth, attributes: attributes)
+    }
+    
+    func boundingRectHeightWithMaxWidth(maxWidth: CGFloat, attributes: [String : AnyObject]) -> CGFloat {
+        let maxSize = CGSizeMake(maxWidth, CGFloat.max)
+        let rect = NSString(string: self).boundingRectWithSize(maxSize, options: .UsesLineFragmentOrigin, attributes: attributes, context: nil)
+        return CGRectGetHeight(rect)
+    }
 }
 
 // MARK: - SubClasses
 
-class TextView: UITextView {
+public class TextView: UITextView {
     
     var placeholder: String? {
         didSet {
@@ -831,19 +941,19 @@ class TextView: UITextView {
         }
     }
     
-    override var text: String? {
+    override public var text: String? {
         didSet {
             
         }
     }
 
-    override var font: UIFont? {
+    override public var font: UIFont? {
         didSet {
             placeHolderLabel.font = font
         }
     }
     
-    override var textAlignment: NSTextAlignment {
+    override public var textAlignment: NSTextAlignment {
         didSet {
             placeHolderLabel.textAlignment = textAlignment
         }
@@ -879,7 +989,7 @@ class TextView: UITextView {
         NSNotificationCenter.defaultCenter().addObserver(self, selector: Selector("handleTextViewTextDidChangeNotification:"), name: UITextViewTextDidChangeNotification, object: nil)
     }
     
-    required init?(coder aDecoder: NSCoder) {
+    required public init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
@@ -889,7 +999,7 @@ class TextView: UITextView {
     
     // MARK: Override UIView Functions
     
-    override func layoutSubviews() {
+    override public func layoutSubviews() {
         super.layoutSubviews()
         
         // PlaceHolderLabel
