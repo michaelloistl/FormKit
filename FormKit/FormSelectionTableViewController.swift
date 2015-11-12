@@ -7,103 +7,104 @@
 //
 
 import Foundation
-//import RealmSwift
 
-//protocol FormSelectionTableViewControllerDelegate {
-//    func formSelectionTableViewController(sender: FormSelectionTableViewController, didSelectRealmObjects objects: [RealmObject], withFormTableViewCellIdentifier identifier: String?)
-//}
+public protocol FormSelectionTableViewControllerDelegate {
+    func formSelectionTableViewController(sender: FormSelectionTableViewController, didSelectValues values: [String], withFormTableViewCellIdentifier identifier: String?)
+}
 
-class FormSelectionTableViewController: UITableViewController {
+public class FormSelectionTableViewController: UITableViewController {
 
-//    let defaultTableViewCellIdentifier = "defaultTableViewCellIdentifier"
-//    
-//    var delegate: FormSelectionTableViewControllerDelegate?
-//    
-//    var formTableViewCellIdentifier: String?
-//    var objectType: RealmObject.Type?
-//    var valueKeyPath: String?
-//    var sortDescriptors: [SortDescriptor]?
-//    var realmResults: Results<RealmObject>? {
-//        didSet {
-//            tableView.reloadData()
-//        }
-//    }
-//    
-//    lazy var clearBarButtonItem: UIBarButtonItem = {
-//        let _clearBarButtonItem = UIBarButtonItem(title: "Clear", style: .Plain, target: self, action: Selector("clearBarButtonItemSelected:"))
-//        
-//        return _clearBarButtonItem
-//    }()
-//    
-//    // MARK: Override UIViewController Functions
-//    
-//    override func viewDidLoad() {
-//        super.viewDidLoad()
-//        
-//        title = "Select"
-//        
-//        navigationItem.rightBarButtonItem = clearBarButtonItem
-//        
-//        tableView.registerClass(UITableViewCell.self, forCellReuseIdentifier: defaultTableViewCellIdentifier)
-//        
-//        if let objectType = objectType {
-//            let realmResults = App.realm()?.objects(objectType)
-//            
-//            if let sortDescriptors = sortDescriptors {
-//                realmResults?.sorted(sortDescriptors)
-//            }
-//            
-//            self.realmResults = realmResults
-//        }
-//    }
-//    
-//    override func viewWillDisappear(animated: Bool) {
-//        super.viewWillDisappear(animated)
-//        
-//        var selectedObjects = [RealmObject]()
-//        
-//        if let indexPathsForSelectedRows = tableView.indexPathsForSelectedRows {
-//            for indexPath in indexPathsForSelectedRows {
-//                if let realmResults = realmResults {
-//                    let realmObject = realmResults[indexPath.row]
-//                    selectedObjects.append(realmObject)
-//                }
-//            }
-//        }
-//        
-//        delegate?.formSelectionTableViewController(self, didSelectRealmObjects: selectedObjects, withFormTableViewCellIdentifier: formTableViewCellIdentifier)
-//    }
-//    
-//    // MARK: IBAction Functions
-//    
-//    func clearBarButtonItemSelected(sender: UIBarButtonItem) {
-//        
-//    }
-//    
-//    // MARK: Functions
-//    
-//    // MARK: UITableViewDataSource
-//    
-//    override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-//        if let realmResults = realmResults {
-//            return Int(realmResults.count)
-//        }
-//        return 0
-//    }
-//    
-//    override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-//        let tableViewCell = tableView.dequeueReusableCellWithIdentifier(defaultTableViewCellIdentifier, forIndexPath: indexPath) 
-//
-//        if let realmObject = realmResults?[indexPath.row] {
-//            if let valueKeyPath = valueKeyPath , stringValue = realmObject.valueForKeyPath(valueKeyPath) as? String {
-//                tableViewCell.textLabel?.text = stringValue
-//            }
-//        }
-//        
-//        return tableViewCell
-//    }
-//    
-//    // MARK: UITableViewDelegate
+    let CellIdentifier = "com.michaelloistl.CellIdentifier"
     
+    public var allowsMultipleSelection = true
+    
+    public var selectionValues = [String]()
+    public var selectedValues = [String]() {
+        didSet {
+            clearBarButtonItem.enabled = selectedValues.count > 0
+        }
+    }
+    
+    public var formTableViewCellIdentifier: String?
+    
+    public var delegate: FormSelectionTableViewControllerDelegate?
+    
+    lazy var clearBarButtonItem: UIBarButtonItem = {
+        let _barButtonItem = UIBarButtonItem(title: "Clear", style: .Plain, target: self, action: Selector("clearBarButtonItemTouchedUpInside:"))
+        _barButtonItem.enabled = false
+
+        return _barButtonItem
+    }()
+    
+    // MARK: - Super
+
+    override public func viewDidLoad() {
+        super.viewDidLoad()
+
+        tableView.registerClass(UITableViewCell.self, forCellReuseIdentifier: CellIdentifier)
+        
+        if allowsMultipleSelection {
+            navigationItem.rightBarButtonItem = clearBarButtonItem
+        }
+    }
+
+    override public func viewWillDisappear(animated: Bool) {
+        super.viewWillDisappear(animated)
+        
+        delegate?.formSelectionTableViewController(self, didSelectValues: selectedValues, withFormTableViewCellIdentifier: formTableViewCellIdentifier)
+    }
+    
+    // MARK: - Methods
+    
+    // MARK: Actions
+    
+    func clearBarButtonItemTouchedUpInside(sender: UIBarButtonItem) {
+        selectedValues.removeAll()
+        tableView.reloadData()
+    }
+    
+    // MARK: - Protocols
+    
+    // MARK: UITableViewDataSource
+    
+    override public func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return selectionValues.count
+    }
+    
+    override public func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
+        let tableViewCell = tableView.dequeueReusableCellWithIdentifier(CellIdentifier, forIndexPath: indexPath)
+
+        let selectionValue = selectionValues[indexPath.row]
+        tableViewCell.textLabel?.text = selectionValue
+        tableViewCell.selectionStyle = (allowsMultipleSelection) ? .None : .Default
+        
+        if allowsMultipleSelection {
+            tableViewCell.accessoryType = (selectedValues.indexOf(selectionValue) == nil) ? .None : .Checkmark
+        }
+        
+        return tableViewCell
+    }
+    
+    // MARK: UITableViewDelegate
+    
+    override public func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
+        let selectionValue = selectionValues[indexPath.row]
+        if let index = selectedValues.indexOf(selectionValue) {
+            selectedValues.removeAtIndex(index)
+        } else {
+            selectedValues.append(selectionValue)
+        }
+        
+        tableView.deselectRowAtIndexPath(indexPath, animated: true)
+        
+        NSLog("selectedValues: \(selectedValues)")
+        
+        if allowsMultipleSelection {
+            clearBarButtonItem.enabled = selectedValues.count > 0
+            tableView.reloadRowsAtIndexPaths([indexPath], withRowAnimation: .None)
+        } else {
+            navigationController?.popViewControllerAnimated(true)
+        }
+    }
     
 }

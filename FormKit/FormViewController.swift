@@ -8,7 +8,7 @@
 
 import Foundation
 
-public class FormViewController: UITableViewController, FormTableViewCellDataSource, FormTableViewCellDelegate {
+public class FormViewController: UITableViewController, FormTableViewCellDataSource, FormTableViewCellDelegate, FormSelectionTableViewControllerDelegate {
     
     public let formManager = FormManager()
     
@@ -45,6 +45,32 @@ public class FormViewController: UITableViewController, FormTableViewCellDataSou
 
     }
     
+    func didSelectFormCell(sender: FormTableViewCell, withIdentifier identifier: String) {
+        if sender.actions.count > 0 {
+            for action in sender.actions {
+                action.closure(value: sender.value)
+            }
+        } else if let formSelectionCell = sender as? FormSelectionTableViewCell {
+            let viewController = FormSelectionTableViewController()
+            viewController.selectionValues = formSelectionCell.selectionValues
+            viewController.allowsMultipleSelection = formSelectionCell.allowsMultipleSelection
+            viewController.formTableViewCellIdentifier = identifier
+            viewController.delegate = self
+            
+            if let formCellValues = formSelectionCell.value as? [String] {
+                viewController.selectedValues = formCellValues
+            }
+            
+            if let title = formSelectionCell.selectionTitle {
+                viewController.title = title
+            } else if let label = formSelectionCell.label.text {
+                viewController.title = "Select \(label)"
+            }
+            
+            navigationController?.pushViewController(viewController, animated: true)
+        }
+    }
+    
     // MARK: - Protocols
     
     // MARK: UITableViewDataSource
@@ -65,6 +91,10 @@ public class FormViewController: UITableViewController, FormTableViewCellDataSou
     // MARK: UITableViewDelegate
     
     public override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
+        if let formCell = tableView.cellForRowAtIndexPath(indexPath) as? FormTableViewCell {
+            didSelectFormCell(formCell, withIdentifier: formCell.identifier)
+        }
+
         tableView.deselectRowAtIndexPath(indexPath, animated: true)
     }
     
@@ -81,7 +111,11 @@ public class FormViewController: UITableViewController, FormTableViewCellDataSou
     // MARK: FormTableViewCellDataSource
     
     public func labelEdgeInsetsForFormCell(sender: FormTableViewCell, withIdentifier identifier: String) -> UIEdgeInsets {
-        return UIEdgeInsetsMake(0, 19, 0, 11)
+        if let _ = sender as? FormButtonTableViewCell {
+            return UIEdgeInsetsZero
+        }
+        
+        return UIEdgeInsetsMake(0, 16, 0, 16)
     }
     
     public func labelConfigurationForFormCell(sender: FormTableViewCell, withIdentifier identifier: String) -> [String: AnyObject] {
@@ -93,7 +127,7 @@ public class FormViewController: UITableViewController, FormTableViewCellDataSou
     }
     
     public func valueEdgeInsetsForFormCell(sender: FormTableViewCell, withIdentifier identifier: String) -> UIEdgeInsets {
-        return UIEdgeInsetsMake(0, 120, 0, 11)
+        return UIEdgeInsetsMake(11, 120, 11, 16)
     }
     
     public func valueConfigurationForFormCell(sender: FormTableViewCell, withIdentifier identifier: String) -> [String: AnyObject] {
@@ -147,6 +181,14 @@ public class FormViewController: UITableViewController, FormTableViewCellDataSou
     
     public func formCell(sender: FormTableViewCell, withIdentifier identifier: String, shouldValidateWithIdentifier validationIdentifier: String) -> Bool {
         return true
+    }
+    
+    // MARK: FormSelectionTableViewControllerDelegate
+    
+    public func formSelectionTableViewController(sender: FormSelectionTableViewController, didSelectValues values: [String], withFormTableViewCellIdentifier identifier: String?) {
+        if let identifier = identifier, formCell = formManager.formCellWithIdentifier(identifier) {
+            formCell.value = values
+        }
     }
     
     // MARK: FormValueTransformer

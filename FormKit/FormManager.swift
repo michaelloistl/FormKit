@@ -68,7 +68,7 @@ public class FormManager: NSObject {
         return isValid
     }
     
-    public func formCellWithIdentifier(identifier: String) -> UITableViewCell? {
+    public func formCellWithIdentifier(identifier: String) -> FormTableViewCell? {
         for cell in allFormCells() {
             if cell.identifier == identifier {
                 return cell
@@ -133,7 +133,7 @@ public class FormManager: NSObject {
             let cell = sections[indexPath.row]
             return cell
         }
-        return FormTableViewCell(identifier: "")
+        return FormTableViewCell(identifier: "", dataSource: nil, delegate: nil)
     }
     
     // MARK: UITableViewDelegate
