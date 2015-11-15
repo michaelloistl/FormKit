@@ -25,6 +25,17 @@ public class FormManager: NSObject {
     
     // MARK: - Methods
     
+    public func indexPathForCell(cell: FormTableViewCell) -> NSIndexPath? {
+        if let visibleFormCells = visibleFormCells {
+            for (section, array) in visibleFormCells.enumerate() {
+                if let row = array.indexOf(cell) {
+                    return NSIndexPath(forRow: row, inSection: section)
+                }
+            }
+        }
+        return nil
+    }
+    
     public func updateAllFormCellValues() {
         for formCell in allFormCells() {
             formCell.setValue()

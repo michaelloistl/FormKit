@@ -29,6 +29,10 @@ public class FormViewController: UITableViewController, FormTableViewCellDataSou
         fatalError("init(coder:) has not been implemented")
     }
     
+    deinit {
+        NSNotificationCenter.defaultCenter().removeObserver(self)
+    }
+    
     // MARK: - Super
     
     override public func viewDidLoad() {
@@ -50,7 +54,7 @@ public class FormViewController: UITableViewController, FormTableViewCellDataSou
             for action in sender.actions {
                 action.closure(value: sender.value)
             }
-        } else if let formSelectionCell = sender as? FormSelectionTableViewCell {
+        } else if let formSelectionCell = sender as? FormSelectionTableViewCell where formSelectionCell.isEditable {
             let viewController = FormSelectionTableViewController()
             viewController.selectionValues = formSelectionCell.selectionValues
             viewController.allowsMultipleSelection = formSelectionCell.allowsMultipleSelection
@@ -110,7 +114,11 @@ public class FormViewController: UITableViewController, FormTableViewCellDataSou
         
     // MARK: FormTableViewCellDataSource
     
-    public func labelEdgeInsetsForFormCell(sender: FormTableViewCell, withIdentifier identifier: String) -> UIEdgeInsets {
+    public func formManagerForFormCell(sender: FormTableViewCell, identifier: String) -> FormManager? {
+        return formManager
+    }
+    
+    public func labelEdgeInsetsForFormCell(sender: FormTableViewCell, identifier: String) -> UIEdgeInsets {
         if let _ = sender as? FormButtonTableViewCell {
             return UIEdgeInsetsZero
         }
@@ -118,25 +126,45 @@ public class FormViewController: UITableViewController, FormTableViewCellDataSou
         return UIEdgeInsetsMake(0, 16, 0, 16)
     }
     
-    public func labelConfigurationForFormCell(sender: FormTableViewCell, withIdentifier identifier: String) -> [String: AnyObject] {
-        return [String: AnyObject]()
-    }
-
-    public func valueForFormCell(sender: FormTableViewCell, withIdentifier identifier: String) -> AnyObject? {
-        return nil
-    }
-    
-    public func valueEdgeInsetsForFormCell(sender: FormTableViewCell, withIdentifier identifier: String) -> UIEdgeInsets {
+    public func valueEdgeInsetsForFormCell(sender: FormTableViewCell, identifier: String) -> UIEdgeInsets {
         return UIEdgeInsetsMake(11, 120, 11, 16)
     }
     
-    public func valueConfigurationForFormCell(sender: FormTableViewCell, withIdentifier identifier: String) -> [String: AnyObject] {
+    public func buttonEdgeInsetsForFormCell(sender: FormTableViewCell, identifier: String) -> UIEdgeInsets {
+        return UIEdgeInsetsZero
+    }
+    
+    public func labelConfigurationForFormCell(sender: FormTableViewCell, identifier: String) -> [String: AnyObject] {
         return [String: AnyObject]()
+    }
+
+    public func valueConfigurationForFormCell(sender: FormTableViewCell, identifier: String) -> [String: AnyObject] {
+        return [String: AnyObject]()
+    }
+    
+    public func buttonConfigurationForFormCell(sender: FormTableViewCell, identifier: String) -> [String: AnyObject] {
+        return [String: AnyObject]()
+    }
+
+    public func bottomLineEdgeInsetsForFormCell(sender: FormTableViewCell, identifier: String) -> UIEdgeInsets {
+        return UIEdgeInsetsMake(0, 16, 0, 0)
+    }
+    
+    public func bottomLineWidthForFormCell(sender: FormTableViewCell, identifier: String) -> CGFloat {
+        return 0
+    }
+
+    public func valueForFormCell(sender: FormTableViewCell, identifier: String) -> AnyObject? {
+        return nil
+    }
+    
+    public func valueTransformerForKey(key: String!, identifier: String?) -> NSValueTransformer! {
+        return nil
     }
     
     // MARK: FormTableViewCellDelegate
     
-    public func formCell(sender: FormTableViewCell, withIdentifier identifier: String, didBecomeFirstResponder firstResponder: UIView?) {
+    public func formCell(sender: FormTableViewCell, identifier: String, didBecomeFirstResponder firstResponder: UIView?) {
         if let indexPath = tableView.indexPathForCell(sender) {
             let cellRect = tableView.rectForRowAtIndexPath(indexPath)
             
@@ -148,22 +176,36 @@ public class FormViewController: UITableViewController, FormTableViewCellDataSou
         }
     }
     
-    public func formCell(sender: FormTableViewCell, withIdentifier identifier: String, didChangeValue value: AnyObject?, forObjectType objectType:AnyClass?, valueKeyPath: String?) {
+    public func formCell(sender: FormTableViewCell, identifier: String, didChangeValue value: AnyObject?, valueKeyPath: String?) {
         
     }
     
-    public func formCell(sender: FormTableViewCell, withIdentifier identifier: String, didChangeRowHeight rowHeight: CGFloat) {
-
+    public func formCell(sender: FormTableViewCell, identifier: String, didChangeRowHeightFrom from: CGFloat, to: CGFloat) {
+        tableView.beginUpdates()
+        tableView.endUpdates()
     }
     
-    public func formCell(sender: FormTableViewCell, withIdentifier identifier: String, didChangeRowVisibility visible: Bool) {
-//        if isViewLoaded() && view.window != nil {
-            formManager.updateVisibleFormCells()
-            tableView.reloadData()
-//        }
+    public func formCell(sender: FormTableViewCell, identifier: String, didChangeRowVisibilityAtIndexPath from: NSIndexPath?, to: NSIndexPath?) {
+        tableView.beginUpdates()
+        
+        // Insert
+        if from == nil {
+            if let indexPath = to {
+                tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: .Automatic)
+            }
+        }
+        
+        // Remove
+        else if to == nil {
+            if let indexPath = from {
+                tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Automatic)
+            }
+        }
+        
+        tableView.endUpdates()
     }
     
-    public func formCellDidRequestNextFormTableViewCell(sender: FormTableViewCell, withIdentifier identifier: String) {
+    public func formCellDidRequestNextFormTableViewCell(sender: FormTableViewCell, identifier: String) {
         if let nextFormCell = formManager.nextFormTableViewCell() {
             if let indexPath = tableView.indexPathForCell(nextFormCell) {
                 let cellRect = tableView.rectForRowAtIndexPath(indexPath)
@@ -179,8 +221,12 @@ public class FormViewController: UITableViewController, FormTableViewCellDataSou
         }
     }
     
-    public func formCell(sender: FormTableViewCell, withIdentifier identifier: String, shouldValidateWithIdentifier validationIdentifier: String) -> Bool {
+    public func formCell(sender: FormTableViewCell, identifier: String, shouldValidateWithIdentifier validationIdentifier: String) -> Bool {
         return true
+    }
+    
+    public func formCell(sender: FormTableViewCell, identifier: String, didTouchUpInsideButton button: UIButton) {
+        
     }
     
     // MARK: FormSelectionTableViewControllerDelegate
@@ -189,12 +235,6 @@ public class FormViewController: UITableViewController, FormTableViewCellDataSou
         if let identifier = identifier, formCell = formManager.formCellWithIdentifier(identifier) {
             formCell.value = values
         }
-    }
-    
-    // MARK: FormValueTransformer
-    
-    func formValueTransformerForKeyPath(keyPath: String!) -> NSValueTransformer! {
-        return nil
     }
     
 }
