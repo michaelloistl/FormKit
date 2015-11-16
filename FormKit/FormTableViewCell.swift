@@ -393,14 +393,18 @@ public class FormTableViewCell: UITableViewCell, FormTableViewCellProtocol {
         
         return nil
     }
-    
-    // MARK: Actions
-    
+
+	public func removeAllActions() {
+		actions.removeAll()
+	}
+
     public func addAction(action: (value: AnyObject?) -> Void, identifier: String) {
         let action = Action(closure: action, identifier: identifier)
         actions.append(action)
     }
-    
+
+	// MARK: Actions
+
     // MARK: Validations
     
     func validateValue() -> Array<Validation>? {
