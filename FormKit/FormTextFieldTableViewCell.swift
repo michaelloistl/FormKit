@@ -16,6 +16,7 @@ public class FormTextFieldTableViewCell: FormTextInputTableViewCell, UITextField
         _textField.delegate = self
         _textField.addTarget(self, action: Selector("textFieldDidChange:"), forControlEvents: .EditingChanged)
         _textField.backgroundColor = UIColor.clearColor()
+        _textField.returnKeyType = .Next
         
         return _textField
     }()
