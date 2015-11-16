@@ -26,6 +26,7 @@ public class FormButtonTableViewCell: FormTableViewCell {
         super.init(identifier: identifier, dataSource: dataSource, delegate: delegate, configuration: configuration)
         
         valueTextView.hidden = true
+        selectionStyle = .None
         
         contentView.addSubview(button)
     }
