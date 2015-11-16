@@ -37,7 +37,7 @@ public class FormViewController: UITableViewController, FormTableViewCellDataSou
     
     override public func viewDidLoad() {
         super.viewDidLoad()
-        
+
         setupForm()
     }
     

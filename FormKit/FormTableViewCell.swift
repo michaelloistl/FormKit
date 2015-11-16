@@ -50,11 +50,19 @@ public protocol FormTableViewCellDelegate {
 }
 
 public struct FormTableViewCellConfiguration {
+    var errorProperties = [String: NSObject]()
     var labelProperties = [String: NSObject]()
     var valueProperties = [String: NSObject]()
     
     public static func defaultConfiguration() -> FormTableViewCellConfiguration {
-        return FormTableViewCellConfiguration()
+        var configuration = FormTableViewCellConfiguration()
+        
+        configuration.errorProperties["backgroundColor"] = UIColor.redColor().colorWithAlphaComponent(0.1)
+        configuration.errorProperties["textColor"] = UIColor.redColor()
+        
+        configuration.labelProperties["textColor"] = UIColor.blackColor()
+        
+        return configuration
     }
     
     public static func emailConfiguration() -> FormTableViewCellConfiguration {
@@ -91,6 +99,11 @@ public class FormTableViewCell: UITableViewCell, FormTableViewCellProtocol {
         let identifier: String
     }
     
+    public enum ErrorStyle {
+        case CellBackground
+        case Label
+    }
+    
     public var identifier: String
     
     public var valueKeyPath: String?
@@ -116,6 +129,10 @@ public class FormTableViewCell: UITableViewCell, FormTableViewCellProtocol {
             configValue()
         }
     }
+    
+    public var configuration: FormTableViewCellConfiguration
+    
+    public var errorStyle: ErrorStyle = .CellBackground
     
     public var validations = Array<Validation>()
     public var actions = Array<Action>()
@@ -151,7 +168,16 @@ public class FormTableViewCell: UITableViewCell, FormTableViewCellProtocol {
     
     public var errorState: Bool = false {
         didSet {
-            contentView.backgroundColor = (errorState) ? UIColor.redColor().colorWithAlphaComponent(0.1) : UIColor.whiteColor()
+            switch errorStyle {
+            case .CellBackground:
+                if let color = configuration.errorProperties["backgroundColor"] as? UIColor {
+                    contentView.backgroundColor = (errorState) ? color : UIColor.whiteColor()
+                }
+            case .Label:
+                if let errorColor = configuration.errorProperties["textColor"] as? UIColor, defaultColor = configuration.labelProperties["textColor"] as? UIColor {
+                    label.textColor = (errorState) ? errorColor : defaultColor
+                }
+            }
         }
     }
     
@@ -223,6 +249,7 @@ public class FormTableViewCell: UITableViewCell, FormTableViewCellProtocol {
     // MARK: - Initializers
     
     required public init(identifier: String, dataSource: FormTableViewCellDataSource!, delegate: FormTableViewCellDelegate!, configuration: FormTableViewCellConfiguration = FormTableViewCellConfiguration.defaultConfiguration()) {
+        self.configuration = configuration
         self.identifier = identifier
         self.dataSource = dataSource
         self.delegate = delegate
