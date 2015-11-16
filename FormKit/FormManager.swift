@@ -113,10 +113,20 @@ public class FormManager: NSObject {
         if let firstResponderCell = firstResponderCell {
             if allFormCells.count > 1 {
                 if let index = allFormCells.indexOf(firstResponderCell) {
-                    var nextIndex = index + 1
+                    var canBeFirstResponder = false
                     
-                    if nextIndex > (allFormCells.count - 1) {
-                        nextIndex = 0
+                    var nextIndex = index
+                    while !canBeFirstResponder {
+                        nextIndex++
+                        
+                        if nextIndex > (allFormCells.count - 1) {
+                            nextIndex = 0
+                        }
+
+                        let cell = allFormCells[nextIndex]
+                        if cell.becomeFirstResponder() {
+                            canBeFirstResponder = true
+                        }
                     }
                     
                     return allFormCells[nextIndex]
