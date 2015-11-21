@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
     s.name = 'FormKit'
-    s.version = '0.0.0'
+    s.version = '0.1.0'
     s.license = 'MIT'
     s.summary = 'Forms in Swift'
     s.authors = { 'Michael Loistl' => 'michael@aplo.co' }
