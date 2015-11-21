@@ -9,11 +9,20 @@
 import Foundation
 import UIKit
 
+public protocol FormManagerDelegate {
+    func formManagerDidSetFormCells(sender: FormManager)
+}
+
 public class FormManager: NSObject {
+    
+    public var delegate: FormManagerDelegate?
     
     public var formCells: Array<Array<FormTableViewCell>>? {
         didSet {
             updateVisibleFormCells()
+
+            delegate?.formManagerDidSetFormCells(self)
+            
             updateAllFormCellValues()
         }
     }

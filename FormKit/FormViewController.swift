@@ -20,6 +20,13 @@ public class FormViewController: UITableViewController, FormManagerDelegate, For
         return _visibleTableViewRect
     }
     
+    public lazy var formManager: FormManager = {
+        let _formManager = FormManager()
+        _formManager.delegate = self
+        
+        return _formManager
+        }()
+    
     // MARK: - Initializers
     
     public override init(style: UITableViewStyle) {
@@ -112,7 +119,12 @@ public class FormViewController: UITableViewController, FormManagerDelegate, For
     override public func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
         return formManager.heightForRowAtIndexPath(indexPath)
     }
-        
+    // MARK: FormManagerDelegate {
+    
+    public func formManagerDidSetFormCells(sender: FormManager) {
+        tableView.reloadData()
+    }
+    
     // MARK: FormTableViewCellDataSource
     
     public func formManagerForFormCell(sender: FormTableViewCell, identifier: String) -> FormManager? {
@@ -170,8 +182,12 @@ public class FormViewController: UITableViewController, FormManagerDelegate, For
     }
     
     public func formCell(sender: FormTableViewCell, identifier: String, didChangeRowHeightFrom from: CGFloat, to: CGFloat) {
-        tableView.beginUpdates()
-        tableView.endUpdates()
+        if animateRowHeightChanges {
+            tableView.beginUpdates()
+            tableView.endUpdates()
+        } else {
+            tableView.reloadData()
+        }
     }
     
     public func formCell(sender: FormTableViewCell, identifier: String, didChangeRowVisibilityAtIndexPath from: NSIndexPath?, to: NSIndexPath?) {
