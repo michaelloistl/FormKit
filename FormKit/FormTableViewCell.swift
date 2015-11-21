@@ -26,9 +26,9 @@ public protocol FormTableViewCellDataSource {
     func bottomLineEdgeInsetsForFormCell(sender: FormTableViewCell, identifier: String) -> UIEdgeInsets
     func bottomLineWidthForFormCell(sender: FormTableViewCell, identifier: String) -> CGFloat
     
-    func labelConfigurationForFormCell(sender: FormTableViewCell, identifier: String) -> [String: AnyObject]
-    func valueConfigurationForFormCell(sender: FormTableViewCell, identifier: String) -> [String: AnyObject]
-    func buttonConfigurationForFormCell(sender: FormTableViewCell, identifier: String) -> [String: AnyObject]
+//    func labelConfigurationForFormCell(sender: FormTableViewCell, identifier: String) -> [String: AnyObject]
+//    func valueConfigurationForFormCell(sender: FormTableViewCell, identifier: String) -> [String: AnyObject]
+//    func buttonConfigurationForFormCell(sender: FormTableViewCell, identifier: String) -> [String: AnyObject]
     
     func valueTransformerForKey(key: String!, identifier: String?) -> NSValueTransformer!
 }
@@ -50,39 +50,58 @@ public protocol FormTableViewCellDelegate {
 }
 
 public struct FormTableViewCellConfiguration {
-    var errorProperties = [String: NSObject]()
-    var labelProperties = [String: NSObject]()
-    var valueProperties = [String: NSObject]()
+    
+    let config: (cell: FormTableViewCell, value: AnyObject?, identifier: String, label: UILabel, valueView: UIView) -> Void
+    
+    // MARK: - Initializers
+    
+    public init(config: (cell: FormTableViewCell, value: AnyObject?, identifier: String, label: UILabel, valueView: UIView) -> Void) {
+        self.config = config
+    }
+    
+    // MARK: - Methods
     
     public static func defaultConfiguration() -> FormTableViewCellConfiguration {
-        var configuration = FormTableViewCellConfiguration()
-        
-        configuration.errorProperties["backgroundColor"] = UIColor.redColor().colorWithAlphaComponent(0.1)
-        configuration.errorProperties["textColor"] = UIColor.redColor()
-        
-        configuration.labelProperties["textColor"] = UIColor.blackColor()
-        
-        return configuration
+        return FormTableViewCellConfiguration(config: { (cell, value, identifier, label, valueView) -> Void in
+            
+            // Error state
+            switch cell.errorStyle {
+            case .CellBackground:
+                cell.contentView.backgroundColor = (cell.errorState) ? cell.errorCellBackgroundColor : cell.defaultCellBackgroundColor
+            case .Label:
+                cell.label.textColor = (cell.errorState) ? cell.errorLabelTextColor : cell.defaultLabelTextColor
+            }
+            
+            // TextField
+            if let textField = valueView as? UITextField {
+                textField.textColor = (cell.isEditable) ? UIColor.blackColor() : UIColor.grayColor()
+            }
+            
+            // TextView
+            if let textView = valueView as? UITextView {
+                textView.textColor = (cell.isEditable) ? UIColor.blackColor() : UIColor.grayColor()
+            }
+        })
     }
     
     public static func emailConfiguration() -> FormTableViewCellConfiguration {
-        var configuration = self.defaultConfiguration()
-        
-        configuration.valueProperties["keyboardType"] = UIKeyboardType.EmailAddress.rawValue
-        configuration.valueProperties["autocorrectionType"] = UITextAutocorrectionType.No.rawValue
-        configuration.valueProperties["autocapitalizationType"] = UITextAutocapitalizationType.None.rawValue
-        
-        return configuration
+        return FormTableViewCellConfiguration(config: { (cell, value, identifier, label, valueView) -> Void in
+            if let textField = valueView as? UITextField {
+                textField.keyboardType = .EmailAddress
+                textField.autocorrectionType = .No
+                textField.autocapitalizationType = .None
+            }
+        })
     }
 
     public static func passwordConfiguration() -> FormTableViewCellConfiguration {
-        var configuration = self.defaultConfiguration()
-        
-        configuration.valueProperties["secureTextEntry"] = true
-        configuration.valueProperties["autocorrectionType"] = UITextAutocorrectionType.No.rawValue
-        configuration.valueProperties["autocapitalizationType"] = UITextAutocapitalizationType.None.rawValue
-        
-        return configuration
+        return FormTableViewCellConfiguration(config: { (cell, value, identifier, label, valueView) -> Void in
+            if let textField = valueView as? UITextField {
+                textField.secureTextEntry = true
+                textField.autocorrectionType = .No
+                textField.autocapitalizationType = .None
+            }
+        })
     }
 }
 
@@ -119,6 +138,8 @@ public class FormTableViewCell: UITableViewCell, FormTableViewCellProtocol {
             if oldRowHeight != newRowHeight {
                 delegate?.formCell(self, identifier: identifier, didChangeRowHeightFrom: oldRowHeight, to: newRowHeight)
             }
+            
+            config()
         }
     }
     
@@ -126,11 +147,17 @@ public class FormTableViewCell: UITableViewCell, FormTableViewCellProtocol {
 
     public var isEditable = true {
         didSet {
-            configValue()
+            layoutSubviews()
         }
     }
     
-    public var configuration: FormTableViewCellConfiguration
+    public var configurations = [FormTableViewCellConfiguration.defaultConfiguration()]
+    
+    public var defaultCellBackgroundColor = UIColor.whiteColor()
+    public var errorCellBackgroundColor = UIColor.redColor().colorWithAlphaComponent(0.2)
+    
+    public var defaultLabelTextColor = UIColor.blackColor()
+    public var errorLabelTextColor = UIColor.redColor()
     
     public var errorStyle: ErrorStyle = .CellBackground
     
@@ -168,16 +195,7 @@ public class FormTableViewCell: UITableViewCell, FormTableViewCellProtocol {
     
     public var errorState: Bool = false {
         didSet {
-            switch errorStyle {
-            case .CellBackground:
-                if let color = configuration.errorProperties["backgroundColor"] as? UIColor {
-                    contentView.backgroundColor = (errorState) ? color : UIColor.whiteColor()
-                }
-            case .Label:
-                if let errorColor = configuration.errorProperties["textColor"] as? UIColor, defaultColor = configuration.labelProperties["textColor"] as? UIColor {
-                    label.textColor = (errorState) ? errorColor : defaultColor
-                }
-            }
+            config()
         }
     }
     
@@ -227,7 +245,7 @@ public class FormTableViewCell: UITableViewCell, FormTableViewCellProtocol {
         _textView.backgroundColor = UIColor.clearColor()
         
         _textView.editable = false
-//        _textView.selectable = true
+        _textView.selectable = true
         _textView.scrollEnabled = false
         _textView.userInteractionEnabled = false
         
@@ -248,8 +266,7 @@ public class FormTableViewCell: UITableViewCell, FormTableViewCellProtocol {
     
     // MARK: - Initializers
     
-    required public init(identifier: String, dataSource: FormTableViewCellDataSource!, delegate: FormTableViewCellDelegate!, configuration: FormTableViewCellConfiguration = FormTableViewCellConfiguration.defaultConfiguration()) {
-        self.configuration = configuration
+    required public init(identifier: String, dataSource: FormTableViewCellDataSource!, delegate: FormTableViewCellDelegate!) {
         self.identifier = identifier
         self.dataSource = dataSource
         self.delegate = delegate
@@ -259,20 +276,6 @@ public class FormTableViewCell: UITableViewCell, FormTableViewCellProtocol {
         contentView.addSubview(bottomSeparatorView)
         contentView.addSubview(label)
         contentView.addSubview(valueTextView)
-        
-        // label configuration
-        for (key, value) in configuration.labelProperties {
-            if label.respondsToSelector(Selector(key)) {
-                label.setValue(value, forKey: key)
-            }
-        }
-        
-        // valueTextView configuration
-        for (key, value) in configuration.labelProperties {
-            if valueTextView.respondsToSelector(Selector(key)) {
-                valueTextView.setValue(value, forKey: key)
-            }
-        }
                 
         // KeyboardAccessoryView
         pickerClearButton.autoAlignAxis(.Horizontal, toSameAxisOfView: keyboardAccessoryView)
@@ -323,8 +326,7 @@ public class FormTableViewCell: UITableViewCell, FormTableViewCellProtocol {
         
         bottomSeparatorView.frame = CGRectMake(bottomSeparatorViewOriginX, bottomSeparatorViewOriginY, bottomSeparatorViewWidth, bottomSeparatorViewHeight)
         
-        configLabel()
-        configValue()
+        config()
     }
     
     // MARK: - Super
@@ -340,23 +342,13 @@ public class FormTableViewCell: UITableViewCell, FormTableViewCellProtocol {
     
     // MARK: - Methods
     
-    func configLabel() {
-        if let config = dataSource?.labelConfigurationForFormCell(self, identifier: identifier) {
-            for (key, value) in config {
-                if label.respondsToSelector(Selector(key)) {
-                    label.setValue(value, forKey: key)
-                }
-            }
-        }
+    func valueView() -> UIView {
+        return valueTextView
     }
-
-    func configValue() {
-        if let config = dataSource?.valueConfigurationForFormCell(self, identifier: identifier) {
-            for (key, value) in config {
-                if valueTextView.respondsToSelector(Selector(key)) {
-                    valueTextView.setValue(value, forKey: key)
-                }
-            }
+    
+    func config() {
+        for configuration in configurations {
+            configuration.config(cell: self, value: self.value, identifier: self.identifier, label: self.label, valueView: self.valueView())
         }
     }
     
@@ -430,6 +422,16 @@ public class FormTableViewCell: UITableViewCell, FormTableViewCellProtocol {
         actions.append(action)
     }
 
+    public func addConfiguration(configuration: FormTableViewCellConfiguration) {
+        configurations.append(configuration)
+    }
+    
+    public func addConfigurations(configurations: [FormTableViewCellConfiguration]) {
+        for configuration in configurations {
+            addConfiguration(configuration)
+        }
+    }
+    
 	// MARK: Actions
 
     // MARK: Validations

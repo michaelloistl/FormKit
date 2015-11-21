@@ -22,8 +22,8 @@ public class FormButtonTableViewCell: FormTableViewCell {
     
     // MARK: Initializers
     
-    required public init(identifier: String, dataSource: FormTableViewCellDataSource!, delegate: FormTableViewCellDelegate!, configuration: FormTableViewCellConfiguration = FormTableViewCellConfiguration.defaultConfiguration()) {
-        super.init(identifier: identifier, dataSource: dataSource, delegate: delegate, configuration: configuration)
+    required public init(identifier: String, dataSource: FormTableViewCellDataSource!, delegate: FormTableViewCellDelegate!) {
+        super.init(identifier: identifier, dataSource: dataSource, delegate: delegate)
         
         valueTextView.hidden = true
         selectionStyle = .None
@@ -53,16 +53,8 @@ public class FormButtonTableViewCell: FormTableViewCell {
     
     // MARK: - Methods
     
-    override func configValue() {
-        super.configValue()
-        
-        if let config = dataSource?.buttonConfigurationForFormCell(self, identifier: identifier) {
-            for (key, value) in config {
-                if button.respondsToSelector(Selector(key)) {
-                    button.setValue(value, forKey: key)
-                }
-            }
-        }
+    override func valueView() -> UIView {
+        return button
     }
     
     // MARK: Actions

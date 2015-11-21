@@ -20,8 +20,8 @@ public class FormSwitchTableViewCell: FormTableViewCell {
     
     // MARK: Initializers
     
-    required public init(identifier: String, dataSource: FormTableViewCellDataSource!, delegate: FormTableViewCellDelegate!, configuration: FormTableViewCellConfiguration = FormTableViewCellConfiguration.defaultConfiguration()) {
-        super.init(identifier: identifier, dataSource: dataSource, delegate: delegate, configuration: configuration)
+    required public init(identifier: String, dataSource: FormTableViewCellDataSource!, delegate: FormTableViewCellDelegate!) {
+        super.init(identifier: identifier, dataSource: dataSource, delegate: delegate)
         
         selectionStyle = .None
         
@@ -49,7 +49,13 @@ public class FormSwitchTableViewCell: FormTableViewCell {
         switchView.frame = CGRectMake(switchOriginX, switchOriginY, switchSizeWidth, switchSizeHeight)
     }
     
-    // MARK: Functions
+    // MARK: Methods
+
+    override func valueView() -> UIView {
+        return switchView
+    }
+    
+    // MARK: Actions
     
     func switchDidChangeValue(sender: UISwitch) {
         value = sender.on

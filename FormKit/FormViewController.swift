@@ -133,18 +133,6 @@ public class FormViewController: UITableViewController, FormTableViewCellDataSou
     public func buttonEdgeInsetsForFormCell(sender: FormTableViewCell, identifier: String) -> UIEdgeInsets {
         return UIEdgeInsetsZero
     }
-    
-    public func labelConfigurationForFormCell(sender: FormTableViewCell, identifier: String) -> [String: AnyObject] {
-        return [String: AnyObject]()
-    }
-
-    public func valueConfigurationForFormCell(sender: FormTableViewCell, identifier: String) -> [String: AnyObject] {
-        return [String: AnyObject]()
-    }
-    
-    public func buttonConfigurationForFormCell(sender: FormTableViewCell, identifier: String) -> [String: AnyObject] {
-        return [String: AnyObject]()
-    }
 
     public func bottomLineEdgeInsetsForFormCell(sender: FormTableViewCell, identifier: String) -> UIEdgeInsets {
         return UIEdgeInsetsMake(0, 16, 0, 0)

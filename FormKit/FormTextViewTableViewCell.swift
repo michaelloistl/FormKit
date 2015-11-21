@@ -62,8 +62,8 @@ public class FormTextViewTableViewCell: FormTextInputTableViewCell, NSLayoutMana
     
     // MARK: Initializers
     
-    required public init(identifier: String, dataSource: FormTableViewCellDataSource!, delegate: FormTableViewCellDelegate!, configuration: FormTableViewCellConfiguration = FormTableViewCellConfiguration.defaultConfiguration()) {
-        super.init(identifier: identifier, dataSource: dataSource, delegate: delegate, configuration: configuration)
+    required public init(identifier: String, dataSource: FormTableViewCellDataSource!, delegate: FormTableViewCellDelegate!) {
+        super.init(identifier: identifier, dataSource: dataSource, delegate: delegate)
         
         maxRowHeight = 88.0
         
@@ -121,6 +121,9 @@ public class FormTextViewTableViewCell: FormTextInputTableViewCell, NSLayoutMana
     
     // MARK: Methods
     
+    override func valueView() -> UIView {
+        return textView
+    }
     
     // MARK: UITextViewDelegate
     
@@ -171,20 +174,6 @@ public class FormTextViewTableViewCell: FormTextInputTableViewCell, NSLayoutMana
     }
     
     // MARK: FormTableViewCellProtocol
-    
-    override func configValue() {
-        super.configValue()
-        
-        textView.textColor = (isEditable) ? UIColor.blackColor() : UIColor.grayColor()
-        
-        if let config = dataSource?.valueConfigurationForFormCell(self, identifier: identifier) {
-            for (key, value) in config {
-                if textView.respondsToSelector(Selector(key)) {
-                    textView.setValue(value, forKey: key)
-                }
-            }
-        }
-    }
     
     override func updateUI() {
         if let text = value as? String {

@@ -32,8 +32,8 @@ public class FormTextInputTableViewCell: FormTableViewCell {
     
     // MARK: - Initializers
     
-    required public init(identifier: String, dataSource: FormTableViewCellDataSource!, delegate: FormTableViewCellDelegate!, configuration: FormTableViewCellConfiguration = FormTableViewCellConfiguration.defaultConfiguration()) {
-        super.init(identifier: identifier, dataSource: dataSource, delegate: delegate, configuration: configuration)
+    required public init(identifier: String, dataSource: FormTableViewCellDataSource!, delegate: FormTableViewCellDelegate!) {
+        super.init(identifier: identifier, dataSource: dataSource, delegate: delegate)
         
         valueTextView.hidden = true
         

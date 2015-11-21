@@ -23,8 +23,8 @@ public class FormTextFieldTableViewCell: FormTextInputTableViewCell, UITextField
     
     // MARK: - Initializers
     
-    required public init(identifier: String, dataSource: FormTableViewCellDataSource!, delegate: FormTableViewCellDelegate!, configuration: FormTableViewCellConfiguration = FormTableViewCellConfiguration.defaultConfiguration()) {
-        super.init(identifier: identifier, dataSource: dataSource, delegate: delegate, configuration: configuration)
+    required public init(identifier: String, dataSource: FormTableViewCellDataSource!, delegate: FormTableViewCellDelegate!) {
+        super.init(identifier: identifier, dataSource: dataSource, delegate: delegate)
         
         contentView.insertSubview(textField, atIndex: 0)
     }
@@ -68,18 +68,8 @@ public class FormTextFieldTableViewCell: FormTextInputTableViewCell, UITextField
     
     // MARK: - Methods
     
-    override func configValue() {
-        super.configValue()
-        
-        textField.textColor = (isEditable) ? UIColor.blackColor() : UIColor.grayColor()
-        
-        if let config = dataSource?.valueConfigurationForFormCell(self, identifier: identifier) {
-            for (key, value) in config {
-                if textField.respondsToSelector(Selector(key)) {
-                    textField.setValue(value, forKey: key)
-                }
-            }
-        }
+    override func valueView() -> UIView {
+        return textField
     }
     
     override func updateUI() {

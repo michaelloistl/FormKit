@@ -28,8 +28,8 @@ public class FormDatePickerTableViewCell: FormTextFieldTableViewCell {
     
     // MARK: Initializers
     
-    required public init(identifier: String, dataSource: FormTableViewCellDataSource!, delegate: FormTableViewCellDelegate!, configuration: FormTableViewCellConfiguration = FormTableViewCellConfiguration.defaultConfiguration()) {
-        super.init(identifier: identifier, dataSource: dataSource, delegate: delegate, configuration: configuration)
+    required public init(identifier: String, dataSource: FormTableViewCellDataSource!, delegate: FormTableViewCellDelegate!) {
+        super.init(identifier: identifier, dataSource: dataSource, delegate: delegate)
         
         selectionStyle = .None
         
@@ -53,7 +53,7 @@ public class FormDatePickerTableViewCell: FormTextFieldTableViewCell {
     }
     
     // MARK: Methods
-    
+        
     func datePickerDidChangeValue(datePicker: UIDatePicker) {
         value = datePicker.date
     }
