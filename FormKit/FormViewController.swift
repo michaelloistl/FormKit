@@ -8,9 +8,10 @@
 
 import Foundation
 
-public class FormViewController: UITableViewController, FormTableViewCellDataSource, FormTableViewCellDelegate, FormSelectionTableViewControllerDelegate {
+public class FormViewController: UITableViewController, FormManagerDelegate, FormTableViewCellDataSource, FormTableViewCellDelegate, FormSelectionTableViewControllerDelegate {
     
-    public let formManager = FormManager()
+    public var animateRowHeightChanges = true
+    public var animateRowVisibilityChanges = true
     
     var visibleTableViewRect: CGRect {
         var _visibleTableViewRect = tableView.bounds
