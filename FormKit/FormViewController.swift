@@ -46,6 +46,8 @@ public class FormViewController: UITableViewController, FormManagerDelegate, For
     override public func viewDidLoad() {
         super.viewDidLoad()
 
+        tableView.tableFooterView = UIView()
+        
         setupForm()
     }
     
