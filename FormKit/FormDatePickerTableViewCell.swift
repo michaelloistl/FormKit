@@ -62,6 +62,7 @@ public class FormDatePickerTableViewCell: FormTextFieldTableViewCell {
     
     override func updateUI() {
         if let dateValue = value as? NSDate {
+            datePicker.date = dateValue
             textField.text = dateFormatter.stringFromDate(dateValue)
         } else {
             textField.text = nil
