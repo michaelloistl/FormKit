@@ -11,7 +11,18 @@ import UIKit
 import PureLayout
 
 public protocol FormTableViewCellProtocol {
-    // TODO:
+    func config()
+    
+    func isEmpty() -> Bool
+    func isValid(showErrorState: Bool) -> Bool
+    func updateUI()
+    func valueView() -> UIView
+    func valueString() -> String?
+    func setValue()
+    func rowHeight() -> CGFloat
+    
+    func pickerClearButtonTouchedUpInside(sender: UIButton)
+    func pickerDoneButtonTouchedUpInside(sender: UIButton)
 }
 
 public protocol FormTableViewCellDataSource {
@@ -342,17 +353,38 @@ public class FormTableViewCell: UITableViewCell, FormTableViewCellProtocol {
     
     // MARK: - Methods
     
-    func valueView() -> UIView {
+    public func removeAllActions() {
+        actions.removeAll()
+    }
+    
+    public func addAction(action: (value: AnyObject?) -> Void, identifier: String) {
+        let action = Action(closure: action, identifier: identifier)
+        actions.append(action)
+    }
+    
+    public func addConfiguration(configuration: FormTableViewCellConfiguration) {
+        configurations.append(configuration)
+    }
+    
+    public func addConfigurations(configurations: [FormTableViewCellConfiguration]) {
+        for configuration in configurations {
+            addConfiguration(configuration)
+        }
+    }
+    
+    // MARK: - Protocols
+    
+    public func valueView() -> UIView {
         return valueTextView
     }
     
-    func config() {
+    public func config() {
         for configuration in configurations {
             configuration.config(cell: self, value: self.value, identifier: self.identifier, label: self.label, valueView: self.valueView())
         }
     }
     
-    func setValue() {
+    public func setValue() {
         let value = dataSource?.valueForFormCell(self, identifier: identifier) //  as? Array<AnyObject> ?? Array<AnyObject>()
         
         // ValueTransformer
@@ -365,15 +397,15 @@ public class FormTableViewCell: UITableViewCell, FormTableViewCellProtocol {
         }
     }
     
-    func updateUI() {
+    public func updateUI() {
         valueTextView.text = valueString()
     }
     
-    func isEmpty() -> Bool {
+    public func isEmpty() -> Bool {
         return value == nil
     }
     
-    func isValid(showErrorState: Bool = true) -> Bool {
+    public func isValid(showErrorState: Bool = true) -> Bool {
         if validate {
             let isValid = validateValue() == nil
             if showErrorState {
@@ -385,7 +417,7 @@ public class FormTableViewCell: UITableViewCell, FormTableViewCellProtocol {
         return true
     }
     
-    func rowHeight() -> CGFloat {
+    public func rowHeight() -> CGFloat {
         let valueEdgeInsets = dataSource?.valueEdgeInsetsForFormCell(self, identifier: identifier) ?? UIEdgeInsetsZero
         let maxWidth = CGRectGetWidth(UIScreen.mainScreen().bounds) - valueEdgeInsets.left - valueEdgeInsets.right
         
@@ -399,7 +431,7 @@ public class FormTableViewCell: UITableViewCell, FormTableViewCellProtocol {
         return rowHeight
     }
     
-    func valueString() -> String? {
+    public func valueString() -> String? {
         if let stringArray = value as? [String] {
             return stringArray.joinWithSeparator(", ")
         } else if let array = value as? [AnyObject] {
@@ -412,27 +444,6 @@ public class FormTableViewCell: UITableViewCell, FormTableViewCellProtocol {
         
         return nil
     }
-
-	public func removeAllActions() {
-		actions.removeAll()
-	}
-
-    public func addAction(action: (value: AnyObject?) -> Void, identifier: String) {
-        let action = Action(closure: action, identifier: identifier)
-        actions.append(action)
-    }
-
-    public func addConfiguration(configuration: FormTableViewCellConfiguration) {
-        configurations.append(configuration)
-    }
-    
-    public func addConfigurations(configurations: [FormTableViewCellConfiguration]) {
-        for configuration in configurations {
-            addConfiguration(configuration)
-        }
-    }
-    
-	// MARK: Actions
 
     // MARK: Validations
     
@@ -510,11 +521,11 @@ public class FormTableViewCell: UITableViewCell, FormTableViewCellProtocol {
     
     // MARK: Actions
     
-    func pickerClearButtonTouchedUpInside(sender: UIButton) {
+    public func pickerClearButtonTouchedUpInside(sender: UIButton) {
 
     }
     
-    func pickerDoneButtonTouchedUpInside(sender: UIButton) {
+    public func pickerDoneButtonTouchedUpInside(sender: UIButton) {
 
     }
 }

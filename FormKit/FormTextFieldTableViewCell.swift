@@ -68,15 +68,15 @@ public class FormTextFieldTableViewCell: FormTextInputTableViewCell, UITextField
     
     // MARK: - Methods
     
-    override func valueView() -> UIView {
+    override public func valueView() -> UIView {
         return textField
     }
     
-    override func updateUI() {
+    override public func updateUI() {
         textField.text = value as? String
     }
     
-    override func isEmpty() -> Bool {
+    override public func isEmpty() -> Bool {
         if let textFieldText = textField.text {
             return textFieldText.characters.count == 0
         }

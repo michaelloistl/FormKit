@@ -51,7 +51,7 @@ public class FormSwitchTableViewCell: FormTableViewCell {
     
     // MARK: Methods
 
-    override func valueView() -> UIView {
+    override public func valueView() -> UIView {
         return switchView
     }
     
@@ -63,11 +63,11 @@ public class FormSwitchTableViewCell: FormTableViewCell {
     
     // MARK: FormTableViewCellProtocol
     
-    override func updateUI() {
+    override public func updateUI() {
         switchView.on = value as? Bool ?? false
     }
     
-    override func isEmpty() -> Bool {
+    override public func isEmpty() -> Bool {
         return false
     }
 }

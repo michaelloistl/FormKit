@@ -53,7 +53,7 @@ public class FormButtonTableViewCell: FormTableViewCell {
     
     // MARK: - Methods
     
-    override func valueView() -> UIView {
+    override public func valueView() -> UIView {
         return button
     }
     

@@ -44,11 +44,11 @@ public class FormDatePickerTableViewCell: FormTextFieldTableViewCell {
     
     // MARK: IBACTION Methods
     
-    override func pickerClearButtonTouchedUpInside(sender: UIButton) {
+    override public func pickerClearButtonTouchedUpInside(sender: UIButton) {
         value = nil
     }
     
-    override func pickerDoneButtonTouchedUpInside(sender: UIButton) {
+    override public func pickerDoneButtonTouchedUpInside(sender: UIButton) {
         textField.resignFirstResponder()
     }
     
@@ -60,7 +60,7 @@ public class FormDatePickerTableViewCell: FormTextFieldTableViewCell {
     
     // MARK: FormTableViewCellProtocol
     
-    override func updateUI() {
+    override public func updateUI() {
         if let dateValue = value as? NSDate {
             datePicker.date = dateValue
             textField.text = dateFormatter.stringFromDate(dateValue)
@@ -69,7 +69,7 @@ public class FormDatePickerTableViewCell: FormTextFieldTableViewCell {
         }
     }
     
-    override func isEmpty() -> Bool {
+    override public func isEmpty() -> Bool {
         if let textFieldText = textField.text {
             return textFieldText.characters.count == 0
         }

@@ -121,7 +121,7 @@ public class FormTextViewTableViewCell: FormTextInputTableViewCell, NSLayoutMana
     
     // MARK: Methods
     
-    override func valueView() -> UIView {
+    override public func valueView() -> UIView {
         return textView
     }
     
@@ -175,7 +175,7 @@ public class FormTextViewTableViewCell: FormTextInputTableViewCell, NSLayoutMana
     
     // MARK: FormTableViewCellProtocol
     
-    override func updateUI() {
+    override public func updateUI() {
         if let text = value as? String {
             if textView.text != text {
                 textView.text = ""
@@ -184,14 +184,14 @@ public class FormTextViewTableViewCell: FormTextInputTableViewCell, NSLayoutMana
         }
     }
     
-    override func isEmpty() -> Bool {
+    override public func isEmpty() -> Bool {
         if let text = textView.text {
             return text.characters.count == 0
         }
         return true
     }
     
-    override func rowHeight() -> CGFloat {
+    override public func rowHeight() -> CGFloat {
         if visible {
             let valueEdgeInsets = dataSource?.valueEdgeInsetsForFormCell(self, identifier: identifier) ?? UIEdgeInsetsZero
             let textHeight = textView.text?.boundingRectHeightWithMaxWidth(CGRectGetWidth(textView.bounds), font: textView.font!) ?? 0
