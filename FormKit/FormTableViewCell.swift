@@ -204,7 +204,7 @@ public class FormTableViewCell: UITableViewCell, FormTableViewCellProtocol {
     
     public var labeVerticallyCentered = false
     
-    lazy var keyboardAccessoryView: KeyboardAccessoryView = {
+    public lazy var keyboardAccessoryView: KeyboardAccessoryView = {
         let _keyboardAccessoryView = KeyboardAccessoryView(frame: CGRectMake(0, 0, CGRectGetWidth(self.contentView.bounds), 44))
         _keyboardAccessoryView.addSubview(self.pickerClearButton)
         _keyboardAccessoryView.addSubview(self.pickerDoneButton)
@@ -212,7 +212,7 @@ public class FormTableViewCell: UITableViewCell, FormTableViewCellProtocol {
         return _keyboardAccessoryView
         }()
     
-    lazy var pickerDoneButton: UIButton = {
+    public lazy var pickerDoneButton: UIButton = {
         let _pickerDoneButton = UIButton(type: .System)
         _pickerDoneButton.translatesAutoresizingMaskIntoConstraints = false
         _pickerDoneButton.setTitle("Done", forState: .Normal)
@@ -221,7 +221,7 @@ public class FormTableViewCell: UITableViewCell, FormTableViewCellProtocol {
         return _pickerDoneButton
         }()
     
-    lazy var pickerClearButton: UIButton = {
+    public lazy var pickerClearButton: UIButton = {
         let _pickerClearButton = UIButton(type: .System)
         _pickerClearButton.translatesAutoresizingMaskIntoConstraints = false
         _pickerClearButton.setTitle("Clear", forState: .Normal)
@@ -541,13 +541,13 @@ extension String {
     }
 }
 
-class KeyboardAccessoryView: UIInputView {
+public class KeyboardAccessoryView: UIInputView {
     
     override init(frame: CGRect, inputViewStyle: UIInputViewStyle) {
         super.init(frame: frame, inputViewStyle: UIInputViewStyle.Keyboard)
     }
     
-    required init?(coder aDecoder: NSCoder) {
+    required public init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 }
