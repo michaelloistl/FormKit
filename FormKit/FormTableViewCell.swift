@@ -37,9 +37,7 @@ public protocol FormTableViewCellDataSource {
     func bottomLineEdgeInsetsForFormCell(sender: FormTableViewCell, identifier: String) -> UIEdgeInsets
     func bottomLineWidthForFormCell(sender: FormTableViewCell, identifier: String) -> CGFloat
     
-//    func labelConfigurationForFormCell(sender: FormTableViewCell, identifier: String) -> [String: AnyObject]
-//    func valueConfigurationForFormCell(sender: FormTableViewCell, identifier: String) -> [String: AnyObject]
-//    func buttonConfigurationForFormCell(sender: FormTableViewCell, identifier: String) -> [String: AnyObject]
+    func defaultConfigurationForFormCell(sender: FormTableViewCell, identifier: String) -> FormTableViewCellConfiguration?
     
     func valueTransformerForKey(key: String!, identifier: String?) -> NSValueTransformer!
 }
@@ -162,7 +160,7 @@ public class FormTableViewCell: UITableViewCell, FormTableViewCellProtocol {
         }
     }
     
-    public var configurations = [FormTableViewCellConfiguration.defaultConfiguration()]
+    public var configurations = [FormTableViewCellConfiguration]()
     
     public var defaultCellBackgroundColor = UIColor.whiteColor()
     public var errorCellBackgroundColor = UIColor.redColor().colorWithAlphaComponent(0.2)
@@ -283,6 +281,12 @@ public class FormTableViewCell: UITableViewCell, FormTableViewCellProtocol {
         self.delegate = delegate
         
         super.init(style: .Default, reuseIdentifier: "")
+        
+        if let defaultConfiguration = dataSource?.defaultConfigurationForFormCell(self, identifier: identifier) {
+            self.configurations.append(defaultConfiguration)
+        } else {
+            self.configurations.append(FormTableViewCellConfiguration.defaultConfiguration())
+        }
         
         contentView.addSubview(bottomSeparatorView)
         contentView.addSubview(label)

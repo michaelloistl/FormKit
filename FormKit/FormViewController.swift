@@ -129,6 +129,10 @@ public class FormViewController: UITableViewController, FormManagerDelegate, For
     
     // MARK: FormTableViewCellDataSource
     
+    public func defaultConfigurationForFormCell(sender: FormTableViewCell, identifier: String) -> FormTableViewCellConfiguration? {
+        return FormTableViewCellConfiguration.defaultConfiguration()
+    }
+    
     public func formManagerForFormCell(sender: FormTableViewCell, identifier: String) -> FormManager? {
         return formManager
     }
