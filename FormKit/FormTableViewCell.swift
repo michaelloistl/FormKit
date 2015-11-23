@@ -160,7 +160,7 @@ public class FormTableViewCell: UITableViewCell, FormTableViewCellProtocol {
         }
     }
     
-    public var configurations = [FormTableViewCellConfiguration]()
+    public var configurations = [FormTableViewCellConfiguration.defaultConfiguration()]
     
     public var defaultCellBackgroundColor = UIColor.whiteColor()
     public var errorCellBackgroundColor = UIColor.redColor().colorWithAlphaComponent(0.2)
@@ -282,10 +282,8 @@ public class FormTableViewCell: UITableViewCell, FormTableViewCellProtocol {
         
         super.init(style: .Default, reuseIdentifier: "")
         
-        if let defaultConfiguration = dataSource?.defaultConfigurationForFormCell(self, identifier: identifier) {
-            self.configurations.append(defaultConfiguration)
-        } else {
-            self.configurations.append(FormTableViewCellConfiguration.defaultConfiguration())
+        if let configuration = dataSource?.defaultConfigurationForFormCell(self, identifier: identifier) {
+            self.configurations.append(configuration)
         }
         
         contentView.addSubview(bottomSeparatorView)
