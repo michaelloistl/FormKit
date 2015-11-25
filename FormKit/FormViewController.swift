@@ -71,8 +71,12 @@ public class FormViewController: UITableViewController, FormManagerDelegate, For
             viewController.formTableViewCellIdentifier = identifier
             viewController.delegate = self
             
+            // TODO: Support AnyObject value type
+            
             if let formCellValues = formSelectionCell.value as? [String] {
                 viewController.selectedValues = formCellValues
+            } else if let formCellValue = formSelectionCell.value as? String {
+                viewController.selectedValues = [formCellValue]
             }
             
             if let title = formSelectionCell.selectionTitle {

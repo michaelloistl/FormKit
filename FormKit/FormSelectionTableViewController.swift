@@ -78,9 +78,7 @@ public class FormSelectionTableViewController: UITableViewController {
         tableViewCell.textLabel?.text = selectionValue
         tableViewCell.selectionStyle = (allowsMultipleSelection) ? .None : .Default
         
-        if allowsMultipleSelection {
-            tableViewCell.accessoryType = (selectedValues.indexOf(selectionValue) == nil) ? .None : .Checkmark
-        }
+        tableViewCell.accessoryType = (selectedValues.indexOf(selectionValue) == nil) ? .None : .Checkmark
         
         return tableViewCell
     }
@@ -88,6 +86,10 @@ public class FormSelectionTableViewController: UITableViewController {
     // MARK: UITableViewDelegate
     
     override public func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
+        if !allowsMultipleSelection {
+            selectedValues.removeAll()
+        }
+        
         let selectionValue = selectionValues[indexPath.row]
         if let index = selectedValues.indexOf(selectionValue) {
             selectedValues.removeAtIndex(index)
@@ -96,8 +98,6 @@ public class FormSelectionTableViewController: UITableViewController {
         }
         
         tableView.deselectRowAtIndexPath(indexPath, animated: true)
-        
-        NSLog("selectedValues: \(selectedValues)")
         
         if allowsMultipleSelection {
             clearBarButtonItem.enabled = selectedValues.count > 0
