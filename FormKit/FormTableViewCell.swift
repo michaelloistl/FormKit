@@ -537,7 +537,7 @@ public class FormTableViewCell: UITableViewCell, FormTableViewCellProtocol {
 extension String {
     
     func isValidEmail() -> Bool {
-        let regularExpression = try? NSRegularExpression(pattern: "\\b^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,20}$\\b", options: [])
+        let regularExpression = try? NSRegularExpression(pattern: "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}", options: [])
         let numberOfMatches = regularExpression?.numberOfMatchesInString(self, options: [], range: NSMakeRange(0, self.characters.count))
         return numberOfMatches > 0
     }
