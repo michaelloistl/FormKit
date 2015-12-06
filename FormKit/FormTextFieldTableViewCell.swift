@@ -46,11 +46,7 @@ public class FormTextFieldTableViewCell: FormTextInputTableViewCell, UITextField
     override public func resignFirstResponder() -> Bool {
         return textField.resignFirstResponder()
     }
-    
-    override public func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
-        becomeFirstResponder()
-    }
-    
+        
     override public func layoutSubviews() {
         super.layoutSubviews()
         
@@ -63,7 +59,7 @@ public class FormTextFieldTableViewCell: FormTextInputTableViewCell, UITextField
         let textFieldSizeHeight: CGFloat = CGRectGetHeight(bounds) - valueEdgeInsets.top - valueEdgeInsets.bottom
         
         textField.frame = CGRectMake(textFieldOriginX, textFieldOriginY, textFieldSizeWidth, textFieldSizeHeight)
-        
+        textField.userInteractionEnabled = isEditable
     }
     
     // MARK: - Methods

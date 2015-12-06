@@ -1,0 +1,6 @@
+framework module Pods_FormKitTests {
+  umbrella header "Pods-FormKitTests-umbrella.h"
+
+  export *
+  module * { export * }
+}

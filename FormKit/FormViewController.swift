@@ -29,14 +29,6 @@ public class FormViewController: UITableViewController, FormManagerDelegate, For
     
     // MARK: - Initializers
     
-    public override init(style: UITableViewStyle) {
-        super.init(style: style)
-    }
-
-    required public init?(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
     deinit {
         NSNotificationCenter.defaultCenter().removeObserver(self)
     }
@@ -102,8 +94,10 @@ public class FormViewController: UITableViewController, FormManagerDelegate, For
     }
     
     override public func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        let tableViewCell = formManager.cellForRowAtIndexPath(indexPath) as FormTableViewCell
-        return tableViewCell
+        if let formCell = formManager.cellForRowAtIndexPath(indexPath) {
+            return formCell
+        }
+        return UITableViewCell()
     }
     
     // MARK: UITableViewDelegate
@@ -123,11 +117,12 @@ public class FormViewController: UITableViewController, FormManagerDelegate, For
     }
     
     override public func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
-        return formManager.heightForRowAtIndexPath(indexPath)
+        return formManager.heightForRowAtIndexPath(indexPath) ?? 44
     }
+    
     // MARK: FormManagerDelegate {
     
-    public func formManagerDidSetFormCells(sender: FormManager) {
+    public func formManagerDidSetFormSections(sender: FormManager) {
         tableView.reloadData()
     }
     

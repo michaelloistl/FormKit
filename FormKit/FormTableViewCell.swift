@@ -72,14 +72,9 @@ public struct FormTableViewCellConfiguration {
     
     public static func defaultConfiguration() -> FormTableViewCellConfiguration {
         return FormTableViewCellConfiguration(config: { (cell, value, identifier, label, valueView) -> Void in
-            
-            // Error state
-            switch cell.errorStyle {
-            case .CellBackground:
-                cell.contentView.backgroundColor = (cell.errorState) ? cell.errorCellBackgroundColor : cell.defaultCellBackgroundColor
-            case .Label:
-                cell.label.textColor = (cell.errorState) ? cell.errorLabelTextColor : cell.defaultLabelTextColor
-            }
+
+            // Label - Error state
+            cell.label.textColor = (cell.errorState) ? cell.errorLabelTextColor : cell.defaultLabelTextColor
             
             // TextField
             if let textField = valueView as? UITextField {
@@ -114,23 +109,25 @@ public struct FormTableViewCellConfiguration {
     }
 }
 
-public class FormTableViewCell: UITableViewCell, FormTableViewCellProtocol {
-    
-    public struct Validation {
-        let closure: (value: AnyObject?) -> Bool
-        let errorMessage: String
-        let identifier: String
-    }
+public struct FormTableViewCellValidation {
+    let closure: (value: AnyObject?) -> Bool
+    let errorMessage: String
+    let identifier: String
+}
 
-    public struct Action {
-        let closure: (value: AnyObject?) -> Void
-        let identifier: String
-    }
+public struct FormTableViewCellAction {
+    let closure: (value: AnyObject?) -> Void
+    let identifier: String
     
-    public enum ErrorStyle {
-        case CellBackground
-        case Label
+    // MARK: - Initializers
+    
+    public init(closure: (value: AnyObject?) -> Void, identifier: String) {
+        self.closure = closure
+        self.identifier = identifier
     }
+}
+
+public class FormTableViewCell: UITableViewCell, FormTableViewCellProtocol {
     
     public var identifier: String
     
@@ -139,6 +136,7 @@ public class FormTableViewCell: UITableViewCell, FormTableViewCellProtocol {
     public var value: AnyObject? {
         didSet {
             updateUI()
+            
             delegate?.formCell(self, identifier: identifier, didChangeValue: value, valueKeyPath: valueKeyPath)
             
             let oldRowHeight = CGRectGetHeight(bounds)
@@ -168,10 +166,8 @@ public class FormTableViewCell: UITableViewCell, FormTableViewCellProtocol {
     public var defaultLabelTextColor = UIColor.blackColor()
     public var errorLabelTextColor = UIColor.redColor()
     
-    public var errorStyle: ErrorStyle = .CellBackground
-    
-    public var validations = Array<Validation>()
-    public var actions = Array<Action>()
+    public var validations = Array<FormTableViewCellValidation>()
+    public var actions = Array<FormTableViewCellAction>()
 
     public var dataSource: FormTableViewCellDataSource?
     public var delegate: FormTableViewCellDelegate?
@@ -193,7 +189,7 @@ public class FormTableViewCell: UITableViewCell, FormTableViewCellProtocol {
                 resignFirstResponder()
                 
                 if let formManager = dataSource?.formManagerForFormCell(self, identifier: identifier) {
-                    formManager.updateVisibleFormCells()
+                    formManager.updateVisibleFormSections()
                     toIndexPath = formManager.indexPathForCell(self)
                 }
                 
@@ -305,9 +301,20 @@ public class FormTableViewCell: UITableViewCell, FormTableViewCellProtocol {
         NSNotificationCenter.defaultCenter().removeObserver(self)
     }
 
+    // MARK: - Super
+    
+    override public func becomeFirstResponder() -> Bool {
+        errorState = false
+        return false
+    }
+    
+    override public func resignFirstResponder() -> Bool {
+        return false
+    }
+    
     override public func layoutSubviews() {
         super.layoutSubviews()
-        
+
         let labelEdgeInsets = dataSource?.labelEdgeInsetsForFormCell(self, identifier: identifier) ?? UIEdgeInsetsZero
         let valueEdgeInsets = dataSource?.valueEdgeInsetsForFormCell(self, identifier: identifier) ?? UIEdgeInsetsZero
         let bottomLineEdgeInsets = dataSource?.bottomLineEdgeInsetsForFormCell(self, identifier: identifier) ?? UIEdgeInsetsZero
@@ -342,25 +349,13 @@ public class FormTableViewCell: UITableViewCell, FormTableViewCellProtocol {
         config()
     }
     
-    // MARK: - Super
-    
-    override public func becomeFirstResponder() -> Bool {
-        errorState = false
-        return false
-    }
-    
-    override public func resignFirstResponder() -> Bool {
-        return false
-    }
-    
     // MARK: - Methods
     
     public func removeAllActions() {
         actions.removeAll()
     }
-    
-    public func addAction(action: (value: AnyObject?) -> Void, identifier: String) {
-        let action = Action(closure: action, identifier: identifier)
+
+    public func addAction(action: FormTableViewCellAction) {
         actions.append(action)
     }
     
@@ -387,7 +382,7 @@ public class FormTableViewCell: UITableViewCell, FormTableViewCellProtocol {
     }
     
     public func setValue() {
-        let value = dataSource?.valueForFormCell(self, identifier: identifier) //  as? Array<AnyObject> ?? Array<AnyObject>()
+        let value = dataSource?.valueForFormCell(self, identifier: identifier)
         
         // ValueTransformer
         if let valueKeyPath = valueKeyPath, valueTransformer = dataSource?.valueTransformerForKey(valueKeyPath, identifier: identifier) {
@@ -449,8 +444,8 @@ public class FormTableViewCell: UITableViewCell, FormTableViewCellProtocol {
 
     // MARK: Validations
     
-    func validateValue() -> Array<Validation>? {
-        var failedValidations = Array<Validation>()
+    func validateValue() -> Array<FormTableViewCellValidation>? {
+        var failedValidations = Array<FormTableViewCellValidation>()
         for validation in validations {
             let shouldValidate = delegate?.formCell(self, identifier: identifier, shouldValidateWithIdentifier: validation.identifier) ?? true
             if shouldValidate {
@@ -464,7 +459,7 @@ public class FormTableViewCell: UITableViewCell, FormTableViewCellProtocol {
     }
     
     public func addValidation(validation: (value: AnyObject?) -> Bool, withErrorMessage errorMessage: String, identifier: String = "") {
-        let validation = Validation(closure: validation, errorMessage: errorMessage, identifier: identifier)
+        let validation = FormTableViewCellValidation(closure: validation, errorMessage: errorMessage, identifier: identifier)
         validations.append(validation)
     }
     

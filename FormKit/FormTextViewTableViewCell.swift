@@ -87,11 +87,7 @@ public class FormTextViewTableViewCell: FormTextInputTableViewCell, NSLayoutMana
     override public func resignFirstResponder() -> Bool {
         return textView.resignFirstResponder()
     }
-    
-    override public func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
-        becomeFirstResponder()
-    }
-    
+        
     // MARK: - Super
     
     override public func layoutSubviews() {
@@ -117,6 +113,8 @@ public class FormTextViewTableViewCell: FormTextInputTableViewCell, NSLayoutMana
         textLabelRect.size.height = 44.0
         
         textLabel?.frame = textLabelRect
+        
+        textView.userInteractionEnabled = isEditable
     }
     
     // MARK: Methods

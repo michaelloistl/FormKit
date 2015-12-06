@@ -85,7 +85,11 @@ strip_invalid_archs() {
 
 if [[ "$CONFIGURATION" == "Debug" ]]; then
   install_framework "Pods-FormKit/PureLayout.framework"
+  install_framework "Pods-FormKit/Realm.framework"
+  install_framework "Pods-FormKit/RealmSwift.framework"
 fi
 if [[ "$CONFIGURATION" == "Release" ]]; then
   install_framework "Pods-FormKit/PureLayout.framework"
+  install_framework "Pods-FormKit/Realm.framework"
+  install_framework "Pods-FormKit/RealmSwift.framework"
 fi

@@ -62,6 +62,11 @@ public class FormTextInputTableViewCell: FormTableViewCell {
         characterLabel.frame = CGRectMake(originX, originY, sizeWidth, sizeHeight)
     }
     
+    override public func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
+        super.touchesBegan(touches, withEvent: event)
+        becomeFirstResponder()
+    }
+
     // MARK: - Methods
     
     func updateCharacterLabelWithCharacterCount(count: Int) {
