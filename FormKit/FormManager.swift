@@ -8,7 +8,6 @@
 
 import Foundation
 import UIKit
-import RealmSwift
 
 public protocol FormManagerDelegate {
     func formManagerDidSetFormSections(sender: FormManager)
