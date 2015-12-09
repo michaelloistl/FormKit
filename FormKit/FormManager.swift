@@ -17,7 +17,7 @@ public class FormManager: NSObject {
     
     public var delegate: FormManagerDelegate?
     
-    public var formSections: [AnyObject]? {
+    public var formSections: [[FormTableViewCell]]? {
         didSet {
             updateVisibleFormSections()
 
@@ -27,7 +27,7 @@ public class FormManager: NSObject {
         }
     }
     
-    var visibleFormSections: [AnyObject]?
+    var visibleFormSections: [[FormTableViewCell]]?
     
     // MARK: - Initializers
     
@@ -38,9 +38,7 @@ public class FormManager: NSObject {
         var allFormCells = [FormTableViewCell]()
         if let visibleFormSections = visibleFormSections {
             for section in visibleFormSections {
-                if let formCellArray = section as? [FormTableViewCell] {
-                    allFormCells += formCellArray
-                }
+                allFormCells += section
             }
         }
         return allFormCells
@@ -49,10 +47,8 @@ public class FormManager: NSObject {
     public func indexPathForCell(cell: FormTableViewCell) -> NSIndexPath? {
         if let visibleFormSections = visibleFormSections {
             for (index, section) in visibleFormSections.enumerate() {
-                if let formCellArray = section as? [FormTableViewCell] {
-                    if let row = formCellArray.indexOf(cell) {
-                        return NSIndexPath(forRow: row, inSection: index)
-                    }
+                if let row = section.indexOf(cell) {
+                    return NSIndexPath(forRow: row, inSection: index)
                 }
             }
         }
@@ -70,20 +66,16 @@ public class FormManager: NSObject {
     }
     
     public func updateVisibleFormSections() {
-        var visibleFormSections = [AnyObject]()
+        var visibleFormSections = [[FormTableViewCell]]()
         if let formSections = formSections {
             for section in formSections {
-                if let formCellSection = section as? [FormTableViewCell] {
-                    var formCells = [FormTableViewCell]()
-                    for formCell in formCellSection {
-                        if formCell.visible {
-                            formCells.append(formCell)
-                        }
+                var formCells = [FormTableViewCell]()
+                for formCell in section {
+                    if formCell.visible {
+                        formCells.append(formCell)
                     }
-                    visibleFormSections.append(formCells)
-                } else if let resultsSection = section as? Results {
-                    visibleFormSections.append(resultsSection)
                 }
+                visibleFormSections.append(formCells)
             }
         }
         
@@ -167,21 +159,13 @@ public class FormManager: NSObject {
     }
     
     public func numberOfRowsInSection(section: Int) -> Int {
-        if let formCellSection = visibleFormSections?[section] as? [FormTableViewCell] {
-            return formCellSection.count
-        } else if let resultsSection = visibleFormSections?[section] as? Results {
-            return resultsSection.count
-        }
-        
-        return 0
+        return visibleFormSections?[section].count ?? 0
     }
     
     public func cellForRowAtIndexPath(indexPath: NSIndexPath) -> FormTableViewCell? {
-        if let formCellSection = visibleFormSections?[indexPath.section] as? [FormTableViewCell] {
-            let formCell = formCellSection[indexPath.row]
-            return formCell
-        }
-        return nil
+        let section = visibleFormSections?[indexPath.section]
+        let formCell = section?[indexPath.row]
+        return formCell
     }
     
     // MARK: UITableViewDelegate
