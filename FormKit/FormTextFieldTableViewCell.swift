@@ -51,7 +51,7 @@ public class FormTextFieldTableViewCell: FormTextInputTableViewCell, UITextField
         super.layoutSubviews()
         
         let valueEdgeInsets = dataSource?.valueEdgeInsetsForFormCell(self, identifier: identifier) ?? UIEdgeInsetsZero
-        
+
         // TextField
         let textFieldOriginX: CGFloat = valueEdgeInsets.left
         let textFieldOriginY: CGFloat = valueEdgeInsets.top

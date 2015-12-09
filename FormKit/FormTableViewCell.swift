@@ -11,15 +11,26 @@ import UIKit
 import PureLayout
 
 public protocol FormTableViewCellProtocol {
-    func config()
+    var identifier: String { get set }
+    var visible: Bool { get set }
+    var errorState: Bool { get set }
+    
+    func isFirstResponder() -> Bool
+    func becomeFirstResponder() -> Bool
+    func resignFirstResponder() -> Bool
     
     func isEmpty() -> Bool
     func isValid(showErrorState: Bool) -> Bool
+
+    func config()
     func updateUI()
+    
     func valueView() -> UIView
     func valueString() -> String?
-    func setValue()
     func rowHeight() -> CGFloat
+    
+    func setValue()
+    func getValue() -> AnyObject?
     
     func pickerClearButtonTouchedUpInside(sender: UIButton)
     func pickerDoneButtonTouchedUpInside(sender: UIButton)
@@ -314,7 +325,7 @@ public class FormTableViewCell: UITableViewCell, FormTableViewCellProtocol {
     
     override public func layoutSubviews() {
         super.layoutSubviews()
-
+        
         let labelEdgeInsets = dataSource?.labelEdgeInsetsForFormCell(self, identifier: identifier) ?? UIEdgeInsetsZero
         let valueEdgeInsets = dataSource?.valueEdgeInsetsForFormCell(self, identifier: identifier) ?? UIEdgeInsetsZero
         let bottomLineEdgeInsets = dataSource?.bottomLineEdgeInsetsForFormCell(self, identifier: identifier) ?? UIEdgeInsetsZero
@@ -351,6 +362,8 @@ public class FormTableViewCell: UITableViewCell, FormTableViewCellProtocol {
     
     // MARK: - Methods
     
+    // MARK: FormTableViewCellAction
+    
     public func removeAllActions() {
         actions.removeAll()
     }
@@ -368,6 +381,82 @@ public class FormTableViewCell: UITableViewCell, FormTableViewCellProtocol {
             addConfiguration(configuration)
         }
     }
+    
+    // MARK: FormTableViewCellValidation
+    
+    func validateValue() -> Array<FormTableViewCellValidation>? {
+        var failedValidations = Array<FormTableViewCellValidation>()
+        for validation in validations {
+            let shouldValidate = delegate?.formCell(self, identifier: identifier, shouldValidateWithIdentifier: validation.identifier) ?? true
+            if shouldValidate {
+                if validation.closure(value: value) == false {
+                    failedValidations.append(validation)
+                }
+            }
+        }
+        
+        return (failedValidations.count > 0) ? failedValidations : nil
+    }
+    
+    public func addValidation(validation: (value: AnyObject?) -> Bool, withErrorMessage errorMessage: String, identifier: String = "") {
+        let validation = FormTableViewCellValidation(closure: validation, errorMessage: errorMessage, identifier: identifier)
+        validations.append(validation)
+    }
+    
+    public func addValidationForTypeEmailWithIdentifier(identifier: String) {
+        addValidation({ (value) -> Bool in
+            if let stringValue = value as? String {
+                return stringValue.isValidEmail()
+            }
+            return false
+            }, withErrorMessage: "Invalid email address", identifier: identifier)
+    }
+    
+    public func addValidationForNotNilValueWithIdentifier(identifier: String) {
+        addValidation({ (value) -> Bool in
+            return value != nil
+            }, withErrorMessage: "Value must be not nil", identifier: identifier)
+    }
+    
+    public func addValidationForTypeStringWithMinLength(length: Int, identifier: String) {
+        let characterString = (length > 1) ? "characters" : "character"
+        addValidation({ (value) -> Bool in
+            if let stringValue = value as? String {
+                return stringValue.characters.count >= length
+            }
+            return false
+            }, withErrorMessage: "Must be at least \(length) \(characterString)", identifier: identifier)
+    }
+    
+    public func addValidationForTypeStringWithMaxLength(length: Int, identifier: String) {
+        let characterString = (length > 1) ? "characters" : "character"
+        addValidation({ (value) -> Bool in
+            if let stringValue = value as? String {
+                return stringValue.characters.count <= length
+            }
+            return true
+            }, withErrorMessage: "Must be at most \(length) \(characterString)", identifier: identifier)
+    }
+    
+    public func addValidationForTypeNumericWithMinNumber(number: Double, identifier: String) {
+        addValidation({ (value) -> Bool in
+            if let doubleValue = value?.doubleValue {
+                return doubleValue >= number
+            }
+            return false
+            }, withErrorMessage: "Must be at least \(number)", identifier: identifier)
+    }
+    
+    public func addValidationForTypeNumericWithMaxNumber(number: Double, identifier: String) {
+        addValidation({ (value) -> Bool in
+            if let doubleValue = value?.doubleValue {
+                return doubleValue <= number
+            }
+            return false
+            }, withErrorMessage: "Must be at least \(number)", identifier: identifier)
+    }
+    
+    // MARK: FormTableViewCellConfiguration
     
     // MARK: - Protocols
     
@@ -392,6 +481,18 @@ public class FormTableViewCell: UITableViewCell, FormTableViewCellProtocol {
         } else {
             self.value = value
         }
+    }
+    
+    public func getValue() -> AnyObject? {
+
+        // ValueTransformer
+        if let valueKeyPath = valueKeyPath, valueTransformer = dataSource?.valueTransformerForKey(valueKeyPath, identifier: identifier) {
+            if let value = valueTransformer.reverseTransformedValue(value) {
+                return value
+            }
+        }
+        
+        return value
     }
     
     public func updateUI() {
@@ -440,80 +541,6 @@ public class FormTableViewCell: UITableViewCell, FormTableViewCellProtocol {
         }
         
         return nil
-    }
-
-    // MARK: Validations
-    
-    func validateValue() -> Array<FormTableViewCellValidation>? {
-        var failedValidations = Array<FormTableViewCellValidation>()
-        for validation in validations {
-            let shouldValidate = delegate?.formCell(self, identifier: identifier, shouldValidateWithIdentifier: validation.identifier) ?? true
-            if shouldValidate {
-                if validation.closure(value: value) == false {
-                    failedValidations.append(validation)
-                }
-            }
-        }
-        
-        return (failedValidations.count > 0) ? failedValidations : nil
-    }
-    
-    public func addValidation(validation: (value: AnyObject?) -> Bool, withErrorMessage errorMessage: String, identifier: String = "") {
-        let validation = FormTableViewCellValidation(closure: validation, errorMessage: errorMessage, identifier: identifier)
-        validations.append(validation)
-    }
-    
-    public func addValidationForTypeEmailWithIdentifier(identifier: String) {
-        addValidation({ (value) -> Bool in
-            if let stringValue = value as? String {
-                return stringValue.isValidEmail()
-            }
-            return false
-        }, withErrorMessage: "Invalid email address", identifier: identifier)
-    }
-    
-    public func addValidationForNotNilValueWithIdentifier(identifier: String) {
-        addValidation({ (value) -> Bool in
-            return value != nil
-        }, withErrorMessage: "Value must be not nil", identifier: identifier)
-    }
-
-    public func addValidationForTypeStringWithMinLength(length: Int, identifier: String) {
-        let characterString = (length > 1) ? "characters" : "character"
-        addValidation({ (value) -> Bool in
-            if let stringValue = value as? String {
-                return stringValue.characters.count >= length
-            }
-            return false
-        }, withErrorMessage: "Must be at least \(length) \(characterString)", identifier: identifier)
-    }
-    
-    public func addValidationForTypeStringWithMaxLength(length: Int, identifier: String) {
-        let characterString = (length > 1) ? "characters" : "character"
-        addValidation({ (value) -> Bool in
-            if let stringValue = value as? String {
-                return stringValue.characters.count <= length
-            }
-            return true
-            }, withErrorMessage: "Must be at most \(length) \(characterString)", identifier: identifier)
-    }
-    
-    public func addValidationForTypeNumericWithMinNumber(number: Double, identifier: String) {
-        addValidation({ (value) -> Bool in
-            if let doubleValue = value?.doubleValue {
-                return doubleValue >= number
-            }
-            return false
-        }, withErrorMessage: "Must be at least \(number)", identifier: identifier)
-    }
-    
-    public func addValidationForTypeNumericWithMaxNumber(number: Double, identifier: String) {
-        addValidation({ (value) -> Bool in
-            if let doubleValue = value?.doubleValue {
-                return doubleValue <= number
-            }
-            return false
-            }, withErrorMessage: "Must be at least \(number)", identifier: identifier)
     }
     
     // MARK: Actions
