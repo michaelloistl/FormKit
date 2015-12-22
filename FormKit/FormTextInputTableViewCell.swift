@@ -12,6 +12,13 @@ import PureLayout
 
 public class FormTextInputTableViewCell: FormTableViewCell {
     
+    public enum CharacterLabelAlignment {
+        case TopLeft
+        case TopRight
+        case BottomLeft
+        case BottomRight
+    }
+    
     var characterlimit: Int = 0 {
         didSet {
             characterLabel.hidden = characterlimit == 0
@@ -19,21 +26,49 @@ public class FormTextInputTableViewCell: FormTableViewCell {
         }
     }
     
+    var characterLabelAlignment: CharacterLabelAlignment = .BottomRight
+    
     var characterLabelValidTextColor = UIColor.lightGrayColor()
     var characterLabelInvalidTextColor = UIColor.redColor()
     
+    var characterLabelInsets = UIEdgeInsetsMake(11, 120, 0, 16)
+    
     public lazy var characterLabel: UILabel = {
-        let _characterLabel = UILabel()
+        let _characterLabel = UILabel(forAutoLayout: ())
         _characterLabel.textAlignment = .Right
         _characterLabel.hidden = true
         
         return _characterLabel
     }()
     
+    lazy var characterLabelTopConstraint: NSLayoutConstraint = {
+        let _constraint = NSLayoutConstraint(item: self.characterLabel, attribute: .Top, relatedBy: .Equal, toItem: self.contentView, attribute: .Top, multiplier: 1.0, constant: 0.0)
+        
+        return _constraint
+    }()
+    
+    lazy var characterLabelLeftConstraint: NSLayoutConstraint = {
+        let _constraint = NSLayoutConstraint(item: self.characterLabel, attribute: .Left, relatedBy: .Equal, toItem: self.contentView, attribute: .Left, multiplier: 1.0, constant: 0.0)
+        
+        return _constraint
+    }()
+    
+    lazy var characterLabelBottomConstraint: NSLayoutConstraint = {
+        let _constraint = NSLayoutConstraint(item: self.characterLabel, attribute: .Bottom, relatedBy: .Equal, toItem: self.contentView, attribute: .Bottom, multiplier: 1.0, constant: 0.0)
+        
+        return _constraint
+    }()
+    
+    lazy var characterLabelRightConstraint: NSLayoutConstraint = {
+        let _constraint = NSLayoutConstraint(item: self.characterLabel, attribute: .Right, relatedBy: .Equal, toItem: self.contentView, attribute: .Right, multiplier: 1.0, constant: 0.0)
+        
+        return _constraint
+    }()
+    
     // MARK: - Initializers
     
-    required public init(identifier: String, dataSource: FormTableViewCellDataSource!, delegate: FormTableViewCellDelegate!) {
-        super.init(identifier: identifier, dataSource: dataSource, delegate: delegate)
+    required public init(identifier: String, delegate: FormTableViewCellDelegate!) {
+        super.init(identifier: identifier, delegate: delegate)
         
         valueTextView.hidden = true
         
@@ -41,6 +76,8 @@ public class FormTextInputTableViewCell: FormTableViewCell {
         contentView.clipsToBounds = true
         
         contentView.addSubview(characterLabel)
+        
+        contentView.addConstraints([characterLabelTopConstraint, characterLabelLeftConstraint, characterLabelBottomConstraint, characterLabelRightConstraint])
     }
     
     required public init?(coder aDecoder: NSCoder) {
@@ -49,17 +86,29 @@ public class FormTextInputTableViewCell: FormTableViewCell {
     
     // MARK: - Super
     
-    override public func layoutSubviews() {
-        super.layoutSubviews()
+    public override func updateConstraints() {
         
-        let valueEdgeInsets = dataSource?.valueEdgeInsetsForFormCell(self, identifier: identifier) ?? UIEdgeInsetsZero
+        characterLabelTopConstraint.constant = characterLabelInsets.top
+        characterLabelLeftConstraint.constant = characterLabelInsets.left
+        characterLabelBottomConstraint.constant = -characterLabelInsets.bottom
+        characterLabelRightConstraint.constant = -characterLabelInsets.right
         
-        let originX: CGFloat = valueEdgeInsets.left
-        let originY: CGFloat = CGRectGetHeight(bounds) - valueEdgeInsets.bottom
-        let sizeWidth: CGFloat = CGRectGetWidth(bounds) - valueEdgeInsets.left - valueEdgeInsets.right
-        let sizeHeight: CGFloat = valueEdgeInsets.bottom
+        switch characterLabelAlignment {
+        case .TopLeft:
+            NSLayoutConstraint.activateConstraints([characterLabelTopConstraint, characterLabelLeftConstraint])
+            NSLayoutConstraint.deactivateConstraints([characterLabelBottomConstraint, characterLabelRightConstraint])
+        case .TopRight:
+            NSLayoutConstraint.activateConstraints([characterLabelTopConstraint, characterLabelRightConstraint])
+            NSLayoutConstraint.deactivateConstraints([characterLabelLeftConstraint, characterLabelBottomConstraint])
+        case .BottomLeft:
+            NSLayoutConstraint.activateConstraints([characterLabelBottomConstraint, characterLabelLeftConstraint])
+            NSLayoutConstraint.deactivateConstraints([characterLabelTopConstraint, characterLabelRightConstraint])
+        case .BottomRight:
+            NSLayoutConstraint.activateConstraints([characterLabelBottomConstraint, characterLabelRightConstraint])
+            NSLayoutConstraint.deactivateConstraints([characterLabelTopConstraint, characterLabelLeftConstraint])
+        }
         
-        characterLabel.frame = CGRectMake(originX, originY, sizeWidth, sizeHeight)
+        super.updateConstraints()
     }
     
     override public func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
@@ -81,6 +130,6 @@ public class FormTextInputTableViewCell: FormTableViewCell {
     }
     
     func nextFormTableViewCell() {
-        delegate?.formCellDidRequestNextFormTableViewCell(self, identifier: identifier)
+        delegate?.formCellDidRequestNextFormTableViewCell?(self, identifier: identifier)
     }
 }

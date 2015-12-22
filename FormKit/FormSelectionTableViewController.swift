@@ -8,8 +8,13 @@
 
 import Foundation
 
+public protocol FormSelectable {
+    func stringValue() -> String
+    func identifier() -> String
+}
+
 public protocol FormSelectionTableViewControllerDelegate {
-    func formSelectionTableViewController(sender: FormSelectionTableViewController, didSelectValues values: [String], withFormTableViewCellIdentifier identifier: String?)
+    func formSelectionTableViewController(sender: FormSelectionTableViewController, didSelectObjects objects: [AnyObject], withFormTableViewCellIdentifier identifier: String?)
 }
 
 public class FormSelectionTableViewController: UITableViewController {
@@ -18,10 +23,10 @@ public class FormSelectionTableViewController: UITableViewController {
     
     public var allowsMultipleSelection = true
     
-    public var selectionValues = [String]()
-    public var selectedValues = [String]() {
+    public var selectionObjects = [FormSelectable]()
+    public var selectedObjects = [FormSelectable]() {
         didSet {
-            clearBarButtonItem.enabled = selectedValues.count > 0
+            clearBarButtonItem.enabled = selectedObjects.count > 0
         }
     }
     
@@ -51,7 +56,14 @@ public class FormSelectionTableViewController: UITableViewController {
     override public func viewWillDisappear(animated: Bool) {
         super.viewWillDisappear(animated)
         
-        delegate?.formSelectionTableViewController(self, didSelectValues: selectedValues, withFormTableViewCellIdentifier: formTableViewCellIdentifier)
+        var selectedAnyObjects = [AnyObject]()
+        for object in selectedObjects {
+            if let object = object as? AnyObject {
+                selectedAnyObjects.append(object)
+            }
+        }
+        
+        delegate?.formSelectionTableViewController(self, didSelectObjects: selectedAnyObjects, withFormTableViewCellIdentifier: formTableViewCellIdentifier)
     }
     
     // MARK: - Methods
@@ -59,7 +71,7 @@ public class FormSelectionTableViewController: UITableViewController {
     // MARK: Actions
     
     func clearBarButtonItemTouchedUpInside(sender: UIBarButtonItem) {
-        selectedValues.removeAll()
+        selectedObjects.removeAll()
         tableView.reloadData()
     }
     
@@ -68,17 +80,17 @@ public class FormSelectionTableViewController: UITableViewController {
     // MARK: UITableViewDataSource
     
     override public func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return selectionValues.count
+        return selectionObjects.count
     }
     
     override public func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let tableViewCell = tableView.dequeueReusableCellWithIdentifier(CellIdentifier, forIndexPath: indexPath)
 
-        let selectionValue = selectionValues[indexPath.row]
-        tableViewCell.textLabel?.text = selectionValue
+        let selectionObject = selectionObjects[indexPath.row]
+        tableViewCell.textLabel?.text = selectionObject.stringValue()
         tableViewCell.selectionStyle = (allowsMultipleSelection) ? .None : .Default
         
-        tableViewCell.accessoryType = (selectedValues.indexOf(selectionValue) == nil) ? .None : .Checkmark
+        tableViewCell.accessoryType = (selectedObjects.indexOf({ $0.identifier() == selectionObject.identifier()}) == nil) ? .None : .Checkmark
         
         return tableViewCell
     }
@@ -87,24 +99,24 @@ public class FormSelectionTableViewController: UITableViewController {
     
     override public func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
         if !allowsMultipleSelection {
-            selectedValues.removeAll()
+            selectedObjects.removeAll()
         }
         
-        let selectionValue = selectionValues[indexPath.row]
-        if let index = selectedValues.indexOf(selectionValue) {
-            selectedValues.removeAtIndex(index)
+        let selectionObject = selectionObjects[indexPath.row]
+        if let index = selectedObjects.indexOf({ $0.identifier() == selectionObject.identifier()}) {
+            selectedObjects.removeAtIndex(index)
         } else {
-            selectedValues.append(selectionValue)
+            selectedObjects.append(selectionObject)
         }
         
         tableView.deselectRowAtIndexPath(indexPath, animated: true)
         
         if allowsMultipleSelection {
-            clearBarButtonItem.enabled = selectedValues.count > 0
+            clearBarButtonItem.enabled = selectedObjects.count > 0
             tableView.reloadRowsAtIndexPaths([indexPath], withRowAnimation: .None)
         } else {
             navigationController?.popViewControllerAnimated(true)
         }
     }
-    
+
 }

@@ -13,11 +13,11 @@
             buildForProfiling = "YES"
             buildForArchiving = "YES">
             <BuildableReference
-               BuildableIdentifier = 'primary'
-               BlueprintIdentifier = 'A427BC746655BCAC955A07F3'
-               BlueprintName = 'Pods-FormKit'
-               ReferencedContainer = 'container:Pods.xcodeproj'
-               BuildableName = 'Pods_FormKit.framework'>
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "AD7CB4EECD7939842163ADE5091ACFD0"
+               BlueprintName = "Pods-FormKit"
+               ReferencedContainer = "container:Pods.xcodeproj"
+               BuildableName = "Pods_FormKit.framework">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>

@@ -19,11 +19,13 @@ public class FormManager: NSObject {
     
     public var formSections: [[FormTableViewCell]]? {
         didSet {
+            setupAllFormCells()
+            
             updateVisibleFormSections()
 
             delegate?.formManagerDidSetFormSections(self)
             
-            updateAllFormCellValues()
+            setAllFormCellValues()
         }
     }
     
@@ -31,17 +33,26 @@ public class FormManager: NSObject {
     
     // MARK: - Initializers
     
-    
     // MARK: - Methods
     
     public func allFormCells() -> [FormTableViewCell] {
         var allFormCells = [FormTableViewCell]()
-        if let visibleFormSections = visibleFormSections {
-            for section in visibleFormSections {
+        if let formSections = formSections {
+            for section in formSections {
                 allFormCells += section
             }
         }
         return allFormCells
+    }
+    
+    public func allVisibleFormCells() -> [FormTableViewCell] {
+        var allVisibleFormCells = [FormTableViewCell]()
+        if let visibleFormSections = visibleFormSections {
+            for section in visibleFormSections {
+                allVisibleFormCells += section
+            }
+        }
+        return allVisibleFormCells
     }
     
     public func indexPathForCell(cell: FormTableViewCell) -> NSIndexPath? {
@@ -59,9 +70,27 @@ public class FormManager: NSObject {
         return visibleFormSections?[section]
     }
     
-    public func updateAllFormCellValues() {
+    public func setupAllFormCells() {
         for formCell in allFormCells() {
+            formCell.formManager = self
+        }
+    }
+    
+    public func setAllFormCellValues() {
+        for formCell in allVisibleFormCells() {
             formCell.setValue()
+        }
+    }
+    
+    public func writeAllFormCellValues() {
+        for formCell in allFormCells() {
+            formCell.writeObjectValue()
+        }
+    }
+    
+    public func writeAllVisibleFormCellValues() {
+        for formCell in allVisibleFormCells() {
+            formCell.writeObjectValue()
         }
     }
     
@@ -78,13 +107,12 @@ public class FormManager: NSObject {
                 visibleFormSections.append(formCells)
             }
         }
-        
         self.visibleFormSections = visibleFormSections
     }
     
     public func formIsValid(showErrorState: Bool = true) -> Bool {
         var isValid = true
-        for formCell in allFormCells() {
+        for formCell in allVisibleFormCells() {
             if formCell.isValid(showErrorState) == false {
                 isValid = false
             }
@@ -93,7 +121,7 @@ public class FormManager: NSObject {
     }
     
     public func formCellWithIdentifier(identifier: String) -> FormTableViewCell? {
-        for cell in allFormCells() {
+        for cell in allVisibleFormCells() {
             if cell.identifier == identifier {
                 return cell
             }
@@ -102,19 +130,19 @@ public class FormManager: NSObject {
     }
     
     public func formResignFirstResponder() {
-        for cell in allFormCells() {
+        for cell in allVisibleFormCells() {
             cell.resignFirstResponder()
         }
     }
     
     public func setErrorState(errorState: Bool) {
-        for formCell in allFormCells() {
+        for formCell in allVisibleFormCells() {
             formCell.errorState = errorState
         }
     }
     
     public func nextFormTableViewCell() -> FormTableViewCell? {
-        let allFormCells = self.allFormCells()
+        let allFormCells = self.allVisibleFormCells()
         var firstResponderCell: FormTableViewCell?
         for cell in allFormCells {
             if cell.isFirstResponder() {
