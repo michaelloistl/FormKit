@@ -12,8 +12,10 @@ import Foundation
 
 public class FormValueTransformer: NSValueTransformer {
     
-    var forwardClosure: ((value: AnyObject?) -> AnyObject?)?
-    var reverseClosure: ((value: AnyObject?) -> AnyObject?)?
+    public typealias closureAlias = (value: AnyObject?) -> AnyObject?
+    
+    var forwardClosure: (closureAlias)?
+    var reverseClosure: (closureAlias)?
     
     // MARK: Initializers
     
@@ -32,18 +34,18 @@ public class FormValueTransformer: NSValueTransformer {
     
     // Returns a transformer which transforms values using the given closure.
     // Reverse transformations will not be allowed.
-    public class func transformerWithClosure(closure: (value: AnyObject?) -> AnyObject?) -> NSValueTransformer! {
+    public class func transformerWithClosure(closure: closureAlias) -> NSValueTransformer! {
         return FormValueTransformer(forwardClosure: closure, reverseClosure: nil)
     }
     
     // Returns a transformer which transforms values using the given closure, for
     // forward or reverse transformations.
-    public class func reversibleTransformerWithClosure(closure: (value: AnyObject?) -> AnyObject?) -> NSValueTransformer! {
-        return reversibleTransformerWithForwardBlock(closure, reverseClosure: closure)
+    public class func reversibleTransformerWithClosure(closure: closureAlias) -> NSValueTransformer! {
+        return reversibleTransformerWithForwardClosure(closure, reverseClosure: closure)
     }
     
     // Returns a transformer which transforms values using the given closures.
-    public class func reversibleTransformerWithForwardBlock(forwardClosure: (value: AnyObject?) -> AnyObject?, reverseClosure: (value: AnyObject?) -> AnyObject?) -> NSValueTransformer! {
+    public class func reversibleTransformerWithForwardClosure(forwardClosure: closureAlias, reverseClosure: closureAlias) -> NSValueTransformer! {
         return FormReversibleValueTransformer(forwardClosure: forwardClosure, reverseClosure: reverseClosure)
     }
     
@@ -63,7 +65,6 @@ public class FormValueTransformer: NSValueTransformer {
         }
         return nil
     }
-    
 }
 
 public class FormReversibleValueTransformer: FormValueTransformer {

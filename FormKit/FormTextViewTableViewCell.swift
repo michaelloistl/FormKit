@@ -13,69 +13,61 @@ public class FormTextViewTableViewCell: FormTextInputTableViewCell, NSLayoutMana
     
     var allowLineBreak = true
     
-//    var contentHeight: CGFloat = 0 {
-//        didSet {
-//            if contentHeight != oldValue {
-//                delegate?.formCell(self, identifier: identifier, didChangeRowHeight: rowHeight())
-//            }
-//        }
-//    }
-    
-    public lazy var textView: TextView = {
-        let _textView = TextView(frame: CGRectZero, textContainer: self.textContainer)
+    public lazy var textView: FormTextView = {
+        let _textView = FormTextView(forAutoLayout: ())
         _textView.delegate = self
         _textView.font = self.textLabel?.font
         _textView.backgroundColor = UIColor.clearColor()
         
+        _textView.contentInset = UIEdgeInsetsZero
+        _textView.textContainerInset = UIEdgeInsetsZero
+        _textView.textContainer.lineFragmentPadding = 0
+
         return _textView
     }()
     
-    // TextStorage
-    lazy var textStorage: NSTextStorage = {
-        let attributes: [String: AnyObject] = [NSFontAttributeName: self.textLabel!.font]
+    lazy var textViewTopConstraint: NSLayoutConstraint = {
+        let _constraint = NSLayoutConstraint(item: self.textView, attribute: .Top, relatedBy: .Equal, toItem: self.contentView, attribute: .Top, multiplier: 1.0, constant: 0.0)
         
-        var attributedString = NSAttributedString(string: "", attributes: attributes)
-        
-        let _textStorage = NSTextStorage()
-        _textStorage.appendAttributedString(attributedString)
-        
-        return _textStorage
+        return _constraint
     }()
     
-    // LayoutManager
-    lazy var textLayoutManager: NSLayoutManager = {
-        let _textLayoutManager = NSLayoutManager()
-        _textLayoutManager.delegate = self
+    lazy var textViewLeftConstraint: NSLayoutConstraint = {
+        let _constraint = NSLayoutConstraint(item: self.textView, attribute: .Left, relatedBy: .Equal, toItem: self.contentView, attribute: .Left, multiplier: 1.0, constant: 0.0)
         
-        return _textLayoutManager
+        return _constraint
     }()
     
-    // TextContainer
-    lazy var textContainer: NSTextContainer = {
-        let _textContainer = NSTextContainer(size: CGSizeMake(CGRectGetWidth(self.bounds), CGFloat.max))
-        _textContainer.widthTracksTextView = true
-        self.textLayoutManager.addTextContainer(_textContainer)
-        self.textStorage.addLayoutManager(self.textLayoutManager)
+    lazy var textViewBottomConstraint: NSLayoutConstraint = {
+        let _constraint = NSLayoutConstraint(item: self.textView, attribute: .Bottom, relatedBy: .Equal, toItem: self.contentView, attribute: .Bottom, multiplier: 1.0, constant: 0.0)
         
-        return _textContainer
+        return _constraint
+    }()
+    
+    lazy var textViewRightConstraint: NSLayoutConstraint = {
+        let _constraint = NSLayoutConstraint(item: self.textView, attribute: .Right, relatedBy: .Equal, toItem: self.contentView, attribute: .Right, multiplier: 1.0, constant: 0.0)
+        
+        return _constraint
     }()
     
     // MARK: Initializers
     
-    required public init(identifier: String, dataSource: FormTableViewCellDataSource!, delegate: FormTableViewCellDelegate!) {
-        super.init(identifier: identifier, dataSource: dataSource, delegate: delegate)
+    required public init(identifier: String, delegate: FormTableViewCellDelegate!) {
+        super.init(identifier: identifier, delegate: delegate)
         
         maxRowHeight = 88.0
         
         contentView.insertSubview(textView, atIndex: 0)
+        
+        contentView.addConstraints([textViewTopConstraint, textViewLeftConstraint, textViewBottomConstraint, textViewRightConstraint])
     }
     
     required public init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
-    // MARK: Override UIResponder Functions
-    
+    // MARK: - Super
+
     override public func isFirstResponder() -> Bool {
         return textView.isFirstResponder()
     }
@@ -88,40 +80,25 @@ public class FormTextViewTableViewCell: FormTextInputTableViewCell, NSLayoutMana
         return textView.resignFirstResponder()
     }
     
-    override public func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
-        becomeFirstResponder()
+    public override func updateConstraints() {
+        
+        textViewTopConstraint.constant = valueViewInsets.top
+        textViewLeftConstraint.constant = valueViewInsets.left
+        textViewBottomConstraint.constant = -valueViewInsets.bottom
+        textViewRightConstraint.constant = -valueViewInsets.right
+        
+        super.updateConstraints()
     }
-    
-    // MARK: - Super
     
     override public func layoutSubviews() {
         super.layoutSubviews()
         
-        let valueEdgeInsets = dataSource?.valueEdgeInsetsForFormCell(self, identifier: identifier) ?? UIEdgeInsetsZero
-        
-        textView.textContainerInset.top = valueEdgeInsets.top
-        
-        // TextView
-        let textViewOriginX: CGFloat = valueEdgeInsets.left
-        let textViewOriginY: CGFloat = 0
-        let textViewSizeWidth: CGFloat = CGRectGetWidth(bounds) - valueEdgeInsets.left - valueEdgeInsets.right
-        let textViewSizeHeight: CGFloat = rowHeight() - valueEdgeInsets.bottom
-        
-        textView.frame = CGRectMake(textViewOriginX, textViewOriginY, textViewSizeWidth, textViewSizeHeight)
-        
-        // TextContainer
-        textContainer.size = CGSizeMake(CGRectGetWidth(textView.bounds), CGFloat.max)
-        
-        // TextLabel
-        var textLabelRect = textLabel?.frame ?? bounds
-        textLabelRect.size.height = 44.0
-        
-        textLabel?.frame = textLabelRect
+        textView.userInteractionEnabled = editable
     }
     
     // MARK: Methods
     
-    override func valueView() -> UIView {
+    override public func valueView() -> UIView {
         return textView
     }
     
@@ -144,23 +121,22 @@ public class FormTextViewTableViewCell: FormTextInputTableViewCell, NSLayoutMana
         layoutSubviews()
         
         value = textView.text
-//        contentHeight = textView.contentSize.height
+
         updateCharacterLabelWithCharacterCount(textView.text?.characters.count ?? 0)
         
-        let valueEdgeInsets = dataSource?.valueEdgeInsetsForFormCell(self, identifier: identifier) ?? UIEdgeInsetsZero
-        let textViewHeight = CGRectGetHeight(bounds) - valueEdgeInsets.bottom
+        let textViewHeight = CGRectGetHeight(bounds) - valueViewInsets.bottom
         let textHeight = textView.text?.boundingRectHeightWithMaxWidth(CGRectGetWidth(textView.bounds), font: textView.font!) ?? 0
         
         textView.scrollEnabled = textHeight > textViewHeight
     }
     
     public func textViewShouldBeginEditing(textView: UITextView) -> Bool {
-        return isEditable
+        return editable
     }
     
     public func textViewDidBeginEditing(textView: UITextView) {
         errorState = false
-        delegate?.formCell(self, identifier: identifier, didBecomeFirstResponder: textView)
+        delegate?.formCell?(self, identifier: identifier, didBecomeFirstResponder: textView)
     }
     
     public func textViewDidEndEditing(textView: UITextView) {
@@ -175,7 +151,7 @@ public class FormTextViewTableViewCell: FormTextInputTableViewCell, NSLayoutMana
     
     // MARK: FormTableViewCellProtocol
     
-    override func updateUI() {
+    override public func updateUI() {
         if let text = value as? String {
             if textView.text != text {
                 textView.text = ""
@@ -184,18 +160,19 @@ public class FormTextViewTableViewCell: FormTextInputTableViewCell, NSLayoutMana
         }
     }
     
-    override func isEmpty() -> Bool {
+    override public func isEmpty() -> Bool {
         if let text = textView.text {
             return text.characters.count == 0
         }
         return true
     }
     
-    override func rowHeight() -> CGFloat {
+    override public func rowHeight() -> CGFloat {
         if visible {
-            let valueEdgeInsets = dataSource?.valueEdgeInsetsForFormCell(self, identifier: identifier) ?? UIEdgeInsetsZero
-            let textHeight = textView.text?.boundingRectHeightWithMaxWidth(CGRectGetWidth(textView.bounds), font: textView.font!) ?? 0
-            return min(max(textHeight + valueEdgeInsets.top + valueEdgeInsets.bottom, minRowHeight), maxRowHeight)
+            let width = CGRectGetWidth(contentView.bounds) - valueViewInsets.left - valueViewInsets.right
+            let size = textView.sizeThatFits(CGSizeMake(width, CGFloat.max))
+            
+            return min(max(ceil(size.height) + valueViewInsets.top + valueViewInsets.bottom, minRowHeight), maxRowHeight)
         }
         return 0
     }
@@ -203,9 +180,9 @@ public class FormTextViewTableViewCell: FormTextInputTableViewCell, NSLayoutMana
 
 // MARK: - SubClasses
 
-public class TextView: UITextView {
+public class FormTextView: UITextView {
     
-    var placeholder: String? {
+    public var placeholder: String? {
         didSet {
             placeHolderLabel.text = placeholder
             layoutSubviews()
@@ -230,7 +207,7 @@ public class TextView: UITextView {
         }
     }
     
-    lazy var placeHolderLabel: UILabel = {
+    public lazy var placeHolderLabel: UILabel = {
         let _placeHolderLabel = UILabel()
         _placeHolderLabel.font = self.font
         _placeHolderLabel.textAlignment = self.textAlignment
@@ -250,6 +227,8 @@ public class TextView: UITextView {
         textContainerInset = UIEdgeInsetsZero
         
         NSNotificationCenter.defaultCenter().addObserver(self, selector: Selector("handleTextViewTextDidChangeNotification:"), name: UITextViewTextDidChangeNotification, object: nil)
+        
+        placeHolderLabel.autoPinEdgesToSuperviewEdgesWithInsets(UIEdgeInsetsZero, excludingEdge: .Bottom)
     }
     
     required public init?(coder aDecoder: NSCoder) {
@@ -262,19 +241,19 @@ public class TextView: UITextView {
     
     // MARK: - Super
     
-    override public func layoutSubviews() {
-        super.layoutSubviews()
-        
-        // PlaceHolderLabel
-        placeHolderLabel.sizeToFit()
-        
-        let placeHolderLabelOriginX: CGFloat = textContainerInset.left + contentInset.left
-        let placeHolderLabelOriginY: CGFloat = textContainerInset.top + contentInset.top + 1.0
-        let placeHolderLabelSizeWidth: CGFloat = CGRectGetWidth(placeHolderLabel.bounds)
-        let placeHolderLabelSizeHeight: CGFloat = CGRectGetHeight(placeHolderLabel.bounds)
-        
-        placeHolderLabel.frame = CGRectMake(placeHolderLabelOriginX, placeHolderLabelOriginY, placeHolderLabelSizeWidth, placeHolderLabelSizeHeight)
-    }
+//    override public func layoutSubviews() {
+//        super.layoutSubviews()
+//        
+//        // PlaceHolderLabel
+//        placeHolderLabel.sizeToFit()
+//        
+//        let placeHolderLabelOriginX: CGFloat = textContainerInset.left + contentInset.left
+//        let placeHolderLabelOriginY: CGFloat = textContainerInset.top + contentInset.top + 1.0
+//        let placeHolderLabelSizeWidth: CGFloat = CGRectGetWidth(placeHolderLabel.bounds)
+//        let placeHolderLabelSizeHeight: CGFloat = CGRectGetHeight(placeHolderLabel.bounds)
+//        
+//        placeHolderLabel.frame = CGRectMake(placeHolderLabelOriginX, placeHolderLabelOriginY, placeHolderLabelSizeWidth, placeHolderLabelSizeHeight)
+//    }
     
     // MARK: Notification Handler Functions
     

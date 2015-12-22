@@ -12,20 +12,29 @@ import UIKit
 public class FormSwitchTableViewCell: FormTableViewCell {
     
     public lazy var switchView: UISwitch = {
-        let _switchView = UISwitch()
+        let _switchView = UISwitch(forAutoLayout: ())
         _switchView.addTarget(self, action: Selector("switchDidChangeValue:"), forControlEvents: .ValueChanged)
         
         return _switchView
     }()
     
+    lazy var switchViewRightConstraint: NSLayoutConstraint = {
+        let _constraint = NSLayoutConstraint(item: self.switchView, attribute: .Right, relatedBy: .Equal, toItem: self.contentView, attribute: .Right, multiplier: 1.0, constant: 0.0)
+        
+        return _constraint
+    }()
+    
     // MARK: Initializers
     
-    required public init(identifier: String, dataSource: FormTableViewCellDataSource!, delegate: FormTableViewCellDelegate!) {
-        super.init(identifier: identifier, dataSource: dataSource, delegate: delegate)
+    required public init(identifier: String, delegate: FormTableViewCellDelegate!) {
+        super.init(identifier: identifier, delegate: delegate)
         
         selectionStyle = .None
         
         contentView.addSubview(switchView)
+        
+        contentView.addConstraint(switchViewRightConstraint)
+        switchView.autoAlignAxis(.Horizontal, toSameAxisOfView: contentView)
     }
     
     required public init?(coder aDecoder: NSCoder) {
@@ -34,24 +43,16 @@ public class FormSwitchTableViewCell: FormTableViewCell {
     
     // MARK: - Super
     
-    override public func layoutSubviews() {
-        super.layoutSubviews()
+    public override func updateConstraints() {
         
-        let valueEdgeInsets = dataSource?.valueEdgeInsetsForFormCell(self, identifier: identifier) ?? UIEdgeInsetsZero
+        switchViewRightConstraint.constant = -valueViewInsets.right
         
-        // Switch
-        switchView.sizeToFit()
-        let switchOriginX: CGFloat = CGRectGetWidth(bounds) - CGRectGetWidth(switchView.bounds) - valueEdgeInsets.right
-        let switchOriginY: CGFloat = (CGRectGetHeight(bounds) - CGRectGetHeight(switchView.bounds)) / 2.0
-        let switchSizeWidth: CGFloat = CGRectGetWidth(switchView.bounds)
-        let switchSizeHeight: CGFloat = CGRectGetHeight(switchView.bounds)
-        
-        switchView.frame = CGRectMake(switchOriginX, switchOriginY, switchSizeWidth, switchSizeHeight)
+        super.updateConstraints()
     }
     
     // MARK: Methods
 
-    override func valueView() -> UIView {
+    override public func valueView() -> UIView {
         return switchView
     }
     
@@ -63,11 +64,11 @@ public class FormSwitchTableViewCell: FormTableViewCell {
     
     // MARK: FormTableViewCellProtocol
     
-    override func updateUI() {
+    override public func updateUI() {
         switchView.on = value as? Bool ?? false
     }
     
-    override func isEmpty() -> Bool {
+    override public func isEmpty() -> Bool {
         return false
     }
 }

@@ -8,7 +8,7 @@
 
 import Foundation
 
-public class FormViewController: UITableViewController, FormManagerDelegate, FormTableViewCellDataSource, FormTableViewCellDelegate, FormSelectionTableViewControllerDelegate {
+public class FormViewController: UITableViewController, FormManagerDelegate, FormTableViewCellDelegate, FormSelectionTableViewControllerDelegate {
     
     public var animateRowHeightChanges = true
     public var animateRowVisibilityChanges = true
@@ -28,14 +28,6 @@ public class FormViewController: UITableViewController, FormManagerDelegate, For
         }()
     
     // MARK: - Initializers
-    
-    public override init(style: UITableViewStyle) {
-        super.init(style: style)
-    }
-
-    required public init?(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
     
     deinit {
         NSNotificationCenter.defaultCenter().removeObserver(self)
@@ -64,16 +56,14 @@ public class FormViewController: UITableViewController, FormManagerDelegate, For
             for action in sender.actions {
                 action.closure(value: sender.value)
             }
-        } else if let formSelectionCell = sender as? FormSelectionTableViewCell where formSelectionCell.isEditable {
+        } else if let formSelectionCell = sender as? FormSelectionTableViewCell where formSelectionCell.editable {
             let viewController = FormSelectionTableViewController()
-            viewController.selectionValues = formSelectionCell.selectionValues
             viewController.allowsMultipleSelection = formSelectionCell.allowsMultipleSelection
             viewController.formTableViewCellIdentifier = identifier
             viewController.delegate = self
-            
-            if let formCellValues = formSelectionCell.value as? [String] {
-                viewController.selectedValues = formCellValues
-            }
+
+            viewController.selectionObjects = formSelectionCell.selectionDataSource.selectionObjectsClosure(value: formSelectionCell.value)
+            viewController.selectedObjects = formSelectionCell.selectionDataSource.selectedObjectsClosure(value: formSelectionCell.value)
             
             if let title = formSelectionCell.selectionTitle {
                 viewController.title = title
@@ -98,8 +88,10 @@ public class FormViewController: UITableViewController, FormManagerDelegate, For
     }
     
     override public func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        let tableViewCell = formManager.cellForRowAtIndexPath(indexPath) as FormTableViewCell
-        return tableViewCell
+        if let formCell = formManager.cellForRowAtIndexPath(indexPath) {
+            return formCell
+        }
+        return UITableViewCell()
     }
     
     // MARK: UITableViewDelegate
@@ -119,51 +111,48 @@ public class FormViewController: UITableViewController, FormManagerDelegate, For
     }
     
     override public func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
-        return formManager.heightForRowAtIndexPath(indexPath)
+        return formManager.heightForRowAtIndexPath(indexPath) ?? 44
     }
+    
     // MARK: FormManagerDelegate {
     
-    public func formManagerDidSetFormCells(sender: FormManager) {
+    public func formManagerDidSetFormSections(sender: FormManager) {
         tableView.reloadData()
     }
     
-    // MARK: FormTableViewCellDataSource
-    
-    public func formManagerForFormCell(sender: FormTableViewCell, identifier: String) -> FormManager? {
-        return formManager
-    }
-    
-    public func labelEdgeInsetsForFormCell(sender: FormTableViewCell, identifier: String) -> UIEdgeInsets {
-        if let _ = sender as? FormButtonTableViewCell {
-            return UIEdgeInsetsZero
-        }
-        
-        return UIEdgeInsetsMake(0, 16, 0, 16)
-    }
-    
-    public func valueEdgeInsetsForFormCell(sender: FormTableViewCell, identifier: String) -> UIEdgeInsets {
-        return UIEdgeInsetsMake(11, 120, 11, 16)
-    }
-    
-    public func buttonEdgeInsetsForFormCell(sender: FormTableViewCell, identifier: String) -> UIEdgeInsets {
-        return UIEdgeInsetsZero
-    }
-
-    public func bottomLineEdgeInsetsForFormCell(sender: FormTableViewCell, identifier: String) -> UIEdgeInsets {
-        return UIEdgeInsetsMake(0, 16, 0, 0)
-    }
-    
-    public func bottomLineWidthForFormCell(sender: FormTableViewCell, identifier: String) -> CGFloat {
-        return 0
-    }
-
-    public func valueForFormCell(sender: FormTableViewCell, identifier: String) -> AnyObject? {
-        return nil
-    }
-    
-    public func valueTransformerForKey(key: String!, identifier: String?) -> NSValueTransformer! {
-        return nil
-    }
+//    // MARK: FormTableViewCellDataSource
+//    
+//    public func labelEdgeInsetsForFormCell(sender: FormTableViewCell, identifier: String) -> UIEdgeInsets {
+//        if let _ = sender as? FormButtonTableViewCell {
+//            return UIEdgeInsetsZero
+//        }
+//        
+//        return UIEdgeInsetsMake(0, 16, 0, 16)
+//    }
+//    
+//    public func valueEdgeInsetsForFormCell(sender: FormTableViewCell, identifier: String) -> UIEdgeInsets {
+//        return UIEdgeInsetsMake(11, 120, 11, 16)
+//    }
+//    
+//    public func buttonEdgeInsetsForFormCell(sender: FormTableViewCell, identifier: String) -> UIEdgeInsets {
+//        return UIEdgeInsetsZero
+//    }
+//
+//    public func bottomLineEdgeInsetsForFormCell(sender: FormTableViewCell, identifier: String) -> UIEdgeInsets {
+//        return UIEdgeInsetsMake(0, 16, 0, 0)
+//    }
+//    
+//    public func bottomLineWidthForFormCell(sender: FormTableViewCell, identifier: String) -> CGFloat {
+//        return 0
+//    }
+//
+//    public func valueForFormCell(sender: FormTableViewCell, identifier: String) -> AnyObject? {
+//        return nil
+//    }
+//    
+//    public func valueTransformerForKey(key: String!, identifier: String?) -> NSValueTransformer! {
+//        return nil
+//    }
     
     // MARK: FormTableViewCellDelegate
     
@@ -179,7 +168,7 @@ public class FormViewController: UITableViewController, FormManagerDelegate, For
         }
     }
     
-    public func formCell(sender: FormTableViewCell, identifier: String, didChangeValue value: AnyObject?, valueKeyPath: String?) {
+    public func formCell(sender: FormTableViewCell, identifier: String, didChangeValue value: AnyObject?) {
         
     }
     
@@ -193,23 +182,27 @@ public class FormViewController: UITableViewController, FormManagerDelegate, For
     }
     
     public func formCell(sender: FormTableViewCell, identifier: String, didChangeRowVisibilityAtIndexPath from: NSIndexPath?, to: NSIndexPath?) {
-        tableView.beginUpdates()
-        
-        // Insert
-        if from == nil {
-            if let indexPath = to {
-                tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: .Automatic)
+        if animateRowVisibilityChanges {
+            tableView.beginUpdates()
+            
+            // Insert
+            if from == nil {
+                if let indexPath = to {
+                    tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: .Automatic)
+                }
             }
-        }
-        
-        // Remove
-        else if to == nil {
-            if let indexPath = from {
-                tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Automatic)
+                
+                // Remove
+            else if to == nil {
+                if let indexPath = from {
+                    tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Automatic)
+                }
             }
+            
+            tableView.endUpdates()
+        } else {
+            tableView.reloadData()
         }
-        
-        tableView.endUpdates()
     }
     
     public func formCellDidRequestNextFormTableViewCell(sender: FormTableViewCell, identifier: String) {
@@ -238,10 +231,9 @@ public class FormViewController: UITableViewController, FormManagerDelegate, For
     
     // MARK: FormSelectionTableViewControllerDelegate
     
-    public func formSelectionTableViewController(sender: FormSelectionTableViewController, didSelectValues values: [String], withFormTableViewCellIdentifier identifier: String?) {
+    public func formSelectionTableViewController(sender: FormSelectionTableViewController, didSelectObjects objects: [AnyObject], withFormTableViewCellIdentifier identifier: String?) {
         if let identifier = identifier, formCell = formManager.formCellWithIdentifier(identifier) {
-            formCell.value = values
+            formCell.value = objects
         }
     }
-    
 }

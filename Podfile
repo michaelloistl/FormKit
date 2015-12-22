@@ -6,6 +6,6 @@ target 'FormKit' do
 end
 
 target 'FormKitTests' do
-    
+
 end
 
