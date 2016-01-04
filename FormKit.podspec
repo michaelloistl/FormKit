@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
     s.name = 'FormKit'
-    s.version = '0.1.0'
+    s.version = '0.2.0'
     s.license = 'MIT'
     s.summary = 'Forms in Swift'
     s.authors = { 'Michael Loistl' => 'michael@aplo.co' }
@@ -15,5 +15,5 @@ Pod::Spec.new do |s|
     s.requires_arc = true
 
     s.dependency 'PureLayout', '~> 3.0'
-    s.dependency 'RealmSwift', '~> 0.96'
+    s.dependency 'RealmSwift', '~> 0.97'
 end
