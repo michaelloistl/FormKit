@@ -297,8 +297,10 @@ public class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
         return _constraint
     }()
     
-    public lazy var valueTextView: UITextView = {
-        let _textView = UITextView(forAutoLayout: ())
+    public lazy var valueTextView: FormTextView = {
+        let _textView = FormTextView(forAutoLayout: ())
+        _textView.dataSource = self
+        
         _textView.textColor = UIColor.grayColor()
         _textView.font = self.label.font
         _textView.textAlignment = .Right
@@ -421,8 +423,8 @@ public class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
         // ValueTextView
         valueTextViewTopConstraint.constant = valueViewInsets.top
         valueTextViewLeftConstraint.constant = valueViewInsets.left
-        valueTextViewBottomConstraint.constant = valueViewInsets.bottom
-        valueTextViewRightConstraint.constant = valueViewInsets.right
+        valueTextViewBottomConstraint.constant = -valueViewInsets.bottom
+        valueTextViewRightConstraint.constant = -valueViewInsets.right
         
         // BottomSeparatorView
         bottomSeparatorViewLeftConstraint.constant = bottomLineInsets.left
@@ -569,6 +571,8 @@ public class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
 
     public func addConfiguration(configuration: FormCellConfiguration) {
         configurations.append(configuration)
+        
+        config()
     }
     
     public func addConfigurations(configurations: [FormCellConfiguration]) {
