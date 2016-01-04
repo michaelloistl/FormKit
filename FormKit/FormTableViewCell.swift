@@ -12,62 +12,6 @@ import PureLayout
 
 // TODO: Clean up FormTableViewCellProtocol to keep only vars and funcs that are required due to dependencies
 
-public protocol FormTableViewCellProtocol {
-
-    var delegate: FormTableViewCellDelegate? { get set }
-    
-    var value: AnyObject? { get set }
-    var identifier: String! { get set }
-    
-    var visible: Bool { get set }
-    var validate: Bool { get set }
-    var editable: Bool { get set }
-    var errorState: Bool { get set }
-    var labelVerticallyCentered: Bool { get set }
-
-    var formManager: FormManager? { get set }
-    
-    var configurations: [FormCellConfiguration] { get set }
-    var validations: [FormCellValidation] { get set }
-    var actions: [FormCellAction] { get set }
-    var valueDataSource: FormCellDataSource? { get set }
-    
-    var labelInsets: UIEdgeInsets { get set }
-    var valueViewInsets: UIEdgeInsets { get set }
-    var buttonInsets: UIEdgeInsets { get set }
-    var bottomLineInsets: UIEdgeInsets { get set }
-    var bottomLineWidth: CGFloat { get set }
-    
-    var minRowHeight: CGFloat { get set }
-    var maxRowHeight: CGFloat { get set }
-    
-    var defaultLabelTextColor: UIColor { get set }
-    var errorLabelTextColor: UIColor { get set }
-    
-    var valueStringClosure: ((value: AnyObject?) -> String)? { get set }
-    
-    func isFirstResponder() -> Bool
-    func becomeFirstResponder() -> Bool
-    func resignFirstResponder() -> Bool
-    
-    func isEmpty() -> Bool
-    func isValid(showErrorState: Bool) -> Bool
-
-    func config()
-    func updateUI()
-    
-    func valueView() -> UIView
-    func valueString() -> String?
-    func rowHeight() -> CGFloat
-    
-    func setValue() -> Bool
-    func getValue() -> AnyObject?
-    func writeObjectValue()
-    
-    func pickerClearButtonTouchedUpInside(sender: UIButton)
-    func pickerDoneButtonTouchedUpInside(sender: UIButton)
-}
-
 @objc public protocol FormTableViewCellDelegate {
     optional func formCell(sender: FormTableViewCell, identifier: String, didBecomeFirstResponder firstResponder: UIView?)
     
@@ -195,9 +139,103 @@ public struct FormCellDataSource {
     }
 }
 
-public class FormTableViewCell: UITableViewCell, FormTableViewCellProtocol {
+public class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
+    
+    public var delegate: FormTableViewCellDelegate?
+    
+    public var value: AnyObject? {
+        didSet {
+            updateUI()
+            
+            delegate?.formCell?(self, identifier: identifier, didChangeValue: value)
+            
+            cachedRowHeight = self.rowHeight()
+            
+            setNeedsUpdateConstraints()
+            setNeedsLayout()
+        }
+    }
+    
+    var cachedRowHeight: CGFloat = 0 {
+        didSet {
+            if oldValue != cachedRowHeight {
+                delegate?.formCell?(self, identifier: identifier, didChangeRowHeightFrom: oldValue, to: cachedRowHeight)
+            }
+        }
+    }
+    
+    public var identifier: String!
+    
+    public var visible: Bool = true {
+        willSet {
+            if visible != newValue {
+                if let formManager = formManager {
+                    fromIndexPath = formManager.indexPathForCell(self)
+                }
+            }
+        }
+        
+        didSet {
+            if visible != oldValue {
+                resignFirstResponder()
+                
+                if let formManager = formManager {
+                    formManager.updateVisibleFormSections()
+                    toIndexPath = formManager.indexPathForCell(self)
+                }
+                
+                delegate?.formCell?(self, identifier: identifier, didChangeRowVisibilityAtIndexPath: fromIndexPath, to: toIndexPath)
+            }
+        }
+    }
+    
+    public var validate = true
+    
+    public var editable = true {
+        didSet {
+            setNeedsUpdateConstraints()
+            setNeedsLayout()
+        }
+    }
+    
+    public var errorState: Bool = false {
+        didSet {
+            config()
+        }
+    }
+    
+    public var formManager: FormManager?
+    
+    public var configurations = [FormCellConfiguration]()
+    
+    public var validations = [FormCellValidation]()
+    
+    public var actions = [FormCellAction]()
+    
+    public var valueDataSource: FormCellDataSource?
+    
+    public var labelInsets = UIEdgeInsetsMake(0, 16, 0, 16)
+    
+    public var valueViewInsets = UIEdgeInsetsMake(11, 120, 11, 16)
+    
+    public var buttonInsets = UIEdgeInsetsZero
+    
+    public var bottomLineInsets = UIEdgeInsetsMake(0, 16, 0, 0)
+    
+    public var bottomLineWidth: CGFloat = 0
+    
+    public var minRowHeight: CGFloat = 44.0
+    
+    public var maxRowHeight: CGFloat = 44.0
+    
+    public var defaultLabelTextColor = UIColor.blackColor()
+    
+    public var errorLabelTextColor = UIColor.redColor()
+    
+    public var valueStringClosure: ((value: AnyObject?) -> String)?
     
     private var fromIndexPath: NSIndexPath?
+    
     private var toIndexPath: NSIndexPath?
     
     public var labelVerticallyCentered = true
@@ -402,6 +440,112 @@ public class FormTableViewCell: UITableViewCell, FormTableViewCellProtocol {
     
     // MARK: - Methods
     
+    public func isEmpty() -> Bool {
+        return value == nil
+    }
+    
+    public func isValid(showErrorState: Bool = true) -> Bool {
+        if validate {
+            let isValid = validateValue() == nil
+            if showErrorState {
+                errorState = !isValid
+            }
+            return isValid
+        }
+        
+        return true
+    }
+    
+    public func config() {
+        for configuration in configurations {
+            configuration.config(cell: self, value: self.value, identifier: self.identifier, label: self.label, valueView: self.valueView())
+        }
+    }
+    
+    public func updateUI() {
+        valueTextView.text = valueString()
+    }
+    
+    public func valueView() -> UIView {
+        return valueTextView
+    }
+    
+    public func valueString() -> String? {
+        if let valueStringClosure = valueStringClosure {
+            return valueStringClosure(value: value)
+        } else {
+            if let stringArray = value as? [String] {
+                return stringArray.joinWithSeparator(", ")
+            } else if let array = value as? [AnyObject] {
+                var selectableObjects = [FormSelectable]()
+                for object in array {
+                    if let object = object as? FormSelectable {
+                        selectableObjects.append(object)
+                    }
+                }
+                
+                if selectableObjects.count > 0 {
+                    let stringArray = selectableObjects.map({ $0.stringValue() })
+                    return stringArray.joinWithSeparator(", ")
+                }
+                
+                return "\(array.count)"
+            } else if let string = value as? String {
+                return string
+            } else if let number = value as? NSNumber {
+                return number.stringValue
+            }
+        }
+        
+        return nil
+    }
+    
+    public func rowHeight() -> CGFloat {
+        let maxWidth = CGRectGetWidth(UIScreen.mainScreen().bounds) - valueViewInsets.left - valueViewInsets.right
+        
+        var valueViewHeight: CGFloat = 0
+        if let text = valueString() {
+            valueViewHeight = text.boundingRectHeightWithMaxWidth(maxWidth, font: valueTextView.font!) + 1
+        }
+        
+        let rowHeight = min(max(valueViewHeight + valueViewInsets.top + valueViewInsets.bottom, minRowHeight), maxRowHeight)
+        
+        return rowHeight
+    }
+    
+    public func setValue() -> Bool {
+        if let valueDataSource = valueDataSource {
+            self.value = valueDataSource.setFormCellValue()
+            return true
+        }
+        
+        return false
+    }
+    
+    public func getValue() -> AnyObject? {
+        if let valueDataSource = valueDataSource {
+            return valueDataSource.getFormCellValue(value: self.value)
+        }
+        
+        return value
+    }
+    
+    public func writeObjectValue() {
+        if let valueDataSource = valueDataSource {
+            valueDataSource.writeObjectValue(value: self.value)
+        }
+    }
+    
+    // MARK: Actions
+    
+    public func pickerClearButtonTouchedUpInside(sender: UIButton) {
+        
+    }
+    
+    public func pickerDoneButtonTouchedUpInside(sender: UIButton) {
+        
+    }
+    
     // MARK: FormCellAction
     
     public func removeAllActions() {
@@ -522,202 +666,14 @@ public class FormTableViewCell: UITableViewCell, FormTableViewCellProtocol {
     
     // MARK: - Protocols
     
-    // MARK: FormTableViewCellProtocol - Variables
-   
-    public var delegate: FormTableViewCellDelegate?
+    // MARK: FormTextViewDataSource
     
-    public var value: AnyObject? {
-        didSet {
-            updateUI()
-            
-            delegate?.formCell?(self, identifier: identifier, didChangeValue: value)
-            
-            let oldRowHeight = CGRectGetHeight(bounds)
-            let newRowHeight = self.rowHeight()
-            
-            if oldRowHeight != newRowHeight {
-                delegate?.formCell?(self, identifier: identifier, didChangeRowHeightFrom: oldRowHeight, to: newRowHeight)
-            }
-            
-            setNeedsUpdateConstraints()
-            setNeedsLayout()
-        }
+    func formTextViewMinHeight(sender: FormTextView) -> CGFloat {
+        return minRowHeight - valueViewInsets.top - valueViewInsets.bottom
     }
     
-    public var identifier: String!
-    
-    public var visible: Bool = true {
-        willSet {
-            if visible != newValue {
-                if let formManager = formManager {
-                    fromIndexPath = formManager.indexPathForCell(self)
-                }
-            }
-        }
-        
-        didSet {
-            if visible != oldValue {
-                resignFirstResponder()
-                
-                if let formManager = formManager {
-                    formManager.updateVisibleFormSections()
-                    toIndexPath = formManager.indexPathForCell(self)
-                }
-                
-                delegate?.formCell?(self, identifier: identifier, didChangeRowVisibilityAtIndexPath: fromIndexPath, to: toIndexPath)
-            }
-        }
-    }
-    
-    public var validate = true
-    
-    public var editable = true {
-        didSet {
-            setNeedsUpdateConstraints()
-            setNeedsLayout()
-        }
-    }
-    
-    public var errorState: Bool = false {
-        didSet {
-            config()
-        }
-    }
-    
-    public var formManager: FormManager?
-    
-    public var configurations = [FormCellConfiguration]()
-    
-    public var validations = [FormCellValidation]()
-    
-    public var actions = [FormCellAction]()
-    
-    public var valueDataSource: FormCellDataSource?
-
-    public var labelInsets = UIEdgeInsetsMake(0, 16, 0, 16)
-    
-    public var valueViewInsets = UIEdgeInsetsMake(11, 120, 11, 16)
-    
-    public var buttonInsets = UIEdgeInsetsZero
-    
-    public var bottomLineInsets = UIEdgeInsetsMake(0, 16, 0, 0)
-    
-    public var bottomLineWidth: CGFloat = 0
-    
-    public var minRowHeight: CGFloat = 44.0
-    
-    public var maxRowHeight: CGFloat = 44.0
-    
-    public var defaultLabelTextColor = UIColor.blackColor()
-    
-    public var errorLabelTextColor = UIColor.redColor()
-
-    public var valueStringClosure: ((value: AnyObject?) -> String)?
-    
-    // MARK: FormTableViewCellProtocol - Methods
-    
-    public func isEmpty() -> Bool {
-        return value == nil
-    }
-    
-    public func isValid(showErrorState: Bool = true) -> Bool {
-        if validate {
-            let isValid = validateValue() == nil
-            if showErrorState {
-                errorState = !isValid
-            }
-            return isValid
-        }
-        
-        return true
-    }
-    
-    public func config() {
-        for configuration in configurations {
-            configuration.config(cell: self, value: self.value, identifier: self.identifier, label: self.label, valueView: self.valueView())
-        }
-    }
-    
-    public func updateUI() {
-        valueTextView.text = valueString()
-    }
-    
-    public func valueView() -> UIView {
-        return valueTextView
-    }
-    
-    public func valueString() -> String? {
-        if let valueStringClosure = valueStringClosure {
-            return valueStringClosure(value: value)
-        } else {
-            if let stringArray = value as? [String] {
-                return stringArray.joinWithSeparator(", ")
-            } else if let array = value as? [AnyObject] {
-                var selectableObjects = [FormSelectable]()
-                for object in array {
-                    if let object = object as? FormSelectable {
-                        selectableObjects.append(object)
-                    }
-                }
-                
-                if selectableObjects.count > 0 {
-                    let stringArray = selectableObjects.map({ $0.stringValue() })
-                    return stringArray.joinWithSeparator(", ")
-                }
-                
-                return "\(array.count)"
-            } else if let string = value as? String {
-                return string
-            } else if let number = value as? NSNumber {
-                return number.stringValue
-            }
-        }
-        
-        return nil
-    }
-    
-    public func rowHeight() -> CGFloat {
-        let maxWidth = CGRectGetWidth(UIScreen.mainScreen().bounds) - valueViewInsets.left - valueViewInsets.right
-        
-        var valueViewHeight: CGFloat = 0
-        if let text = valueString() {
-            valueViewHeight = text.boundingRectHeightWithMaxWidth(maxWidth, font: valueTextView.font!) + 1
-        }
-        
-        let rowHeight = min(max(valueViewHeight + valueViewInsets.top + valueViewInsets.bottom, minRowHeight), maxRowHeight)
-        
-        return rowHeight
-    }
-    
-    public func setValue() -> Bool {
-        if let valueDataSource = valueDataSource {
-            self.value = valueDataSource.setFormCellValue()
-            return true
-        }
-        
-        return false
-    }
-    
-    public func getValue() -> AnyObject? {
-        if let valueDataSource = valueDataSource {
-            return valueDataSource.getFormCellValue(value: self.value)
-        }
-
-        return value
-    }
-    
-    public func writeObjectValue() {
-        if let valueDataSource = valueDataSource {
-            valueDataSource.writeObjectValue(value: self.value)
-        }
-    }
-    
-    public func pickerClearButtonTouchedUpInside(sender: UIButton) {
-
-    }
-    
-    public func pickerDoneButtonTouchedUpInside(sender: UIButton) {
-
+    func formTextViewMaxHeight(sender: FormTextView) -> CGFloat {
+        return maxRowHeight - valueViewInsets.top - valueViewInsets.bottom
     }
 }
 

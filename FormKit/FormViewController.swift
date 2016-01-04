@@ -120,40 +120,6 @@ public class FormViewController: UITableViewController, FormManagerDelegate, For
         tableView.reloadData()
     }
     
-//    // MARK: FormTableViewCellDataSource
-//    
-//    public func labelEdgeInsetsForFormCell(sender: FormTableViewCell, identifier: String) -> UIEdgeInsets {
-//        if let _ = sender as? FormButtonTableViewCell {
-//            return UIEdgeInsetsZero
-//        }
-//        
-//        return UIEdgeInsetsMake(0, 16, 0, 16)
-//    }
-//    
-//    public func valueEdgeInsetsForFormCell(sender: FormTableViewCell, identifier: String) -> UIEdgeInsets {
-//        return UIEdgeInsetsMake(11, 120, 11, 16)
-//    }
-//    
-//    public func buttonEdgeInsetsForFormCell(sender: FormTableViewCell, identifier: String) -> UIEdgeInsets {
-//        return UIEdgeInsetsZero
-//    }
-//
-//    public func bottomLineEdgeInsetsForFormCell(sender: FormTableViewCell, identifier: String) -> UIEdgeInsets {
-//        return UIEdgeInsetsMake(0, 16, 0, 0)
-//    }
-//    
-//    public func bottomLineWidthForFormCell(sender: FormTableViewCell, identifier: String) -> CGFloat {
-//        return 0
-//    }
-//
-//    public func valueForFormCell(sender: FormTableViewCell, identifier: String) -> AnyObject? {
-//        return nil
-//    }
-//    
-//    public func valueTransformerForKey(key: String!, identifier: String?) -> NSValueTransformer! {
-//        return nil
-//    }
-    
     // MARK: FormTableViewCellDelegate
     
     public func formCell(sender: FormTableViewCell, identifier: String, didBecomeFirstResponder firstResponder: UIView?) {
