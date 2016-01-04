@@ -13,9 +13,18 @@ public class FormTextViewTableViewCell: FormTextInputTableViewCell, NSLayoutMana
     
     var allowLineBreak = true
     
+    var textViewWidth: CGFloat {
+        return CGRectGetWidth(contentView.bounds) - valueViewInsets.left - valueViewInsets.right
+    }
+    
+    var textViewHeight: CGFloat {
+        return textView.sizeThatFits(CGSizeMake(textViewWidth, CGFloat.max)).height
+    }
+    
     public lazy var textView: FormTextView = {
         let _textView = FormTextView(forAutoLayout: ())
         _textView.delegate = self
+        _textView.dataSource = self
         _textView.font = self.textLabel?.font
         _textView.backgroundColor = UIColor.clearColor()
         
@@ -123,11 +132,6 @@ public class FormTextViewTableViewCell: FormTextInputTableViewCell, NSLayoutMana
         value = textView.text
 
         updateCharacterLabelWithCharacterCount(textView.text?.characters.count ?? 0)
-        
-        let textViewHeight = CGRectGetHeight(bounds) - valueViewInsets.bottom
-        let textHeight = textView.text?.boundingRectHeightWithMaxWidth(CGRectGetWidth(textView.bounds), font: textView.font!) ?? 0
-        
-        textView.scrollEnabled = textHeight > textViewHeight
     }
     
     public func textViewShouldBeginEditing(textView: UITextView) -> Bool {
@@ -169,10 +173,13 @@ public class FormTextViewTableViewCell: FormTextInputTableViewCell, NSLayoutMana
     
     override public func rowHeight() -> CGFloat {
         if visible {
-            let width = CGRectGetWidth(contentView.bounds) - valueViewInsets.left - valueViewInsets.right
-            let size = textView.sizeThatFits(CGSizeMake(width, CGFloat.max))
+            let rowHeight = min(max(ceil(self.textViewHeight) + valueViewInsets.top + valueViewInsets.bottom, minRowHeight), maxRowHeight)
             
-            return min(max(ceil(size.height) + valueViewInsets.top + valueViewInsets.bottom, minRowHeight), maxRowHeight)
+            let textViewHeight = rowHeight - valueViewInsets.top - valueViewInsets.bottom
+
+            textView.scrollEnabled = self.textViewHeight > textViewHeight
+            
+            return rowHeight
         }
         return 0
     }
@@ -180,7 +187,14 @@ public class FormTextViewTableViewCell: FormTextInputTableViewCell, NSLayoutMana
 
 // MARK: - SubClasses
 
+protocol FormTextViewDataSource {
+    func formTextViewMinHeight(sender: FormTextView) -> CGFloat
+    func formTextViewMaxHeight(sender: FormTextView) -> CGFloat
+}
+
 public class FormTextView: UITextView {
+    
+    var dataSource: FormTextViewDataSource?
     
     public var placeholder: String? {
         didSet {
@@ -240,6 +254,21 @@ public class FormTextView: UITextView {
     }
     
     // MARK: - Super
+    
+    public override func intrinsicContentSize() -> CGSize {
+        let width = super.intrinsicContentSize().width
+        var height = sizeThatFits(CGSizeMake(width, CGFloat.max)).height
+        
+        if let minHeight = dataSource?.formTextViewMinHeight(self) {
+            height = max(height, minHeight)
+        }
+        
+        if let maxHeight = dataSource?.formTextViewMaxHeight(self) {
+            height = min(height, maxHeight)
+        }
+        
+        return CGSizeMake(width, height)
+    }
     
 //    override public func layoutSubviews() {
 //        super.layoutSubviews()

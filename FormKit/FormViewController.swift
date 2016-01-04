@@ -13,6 +13,10 @@ public class FormViewController: UITableViewController, FormManagerDelegate, For
     public var animateRowHeightChanges = true
     public var animateRowVisibilityChanges = true
     
+    public var isVisible: Bool {
+        return isViewLoaded() && view?.window != nil
+    }
+    
     var visibleTableViewRect: CGRect {
         var _visibleTableViewRect = tableView.bounds
         _visibleTableViewRect.size.height = CGRectGetHeight(tableView.bounds) - tableView.contentInset.bottom
@@ -35,12 +39,23 @@ public class FormViewController: UITableViewController, FormManagerDelegate, For
     
     // MARK: - Super
     
-    override public func viewDidLoad() {
+    public override func viewDidLoad() {
         super.viewDidLoad()
 
         tableView.tableFooterView = UIView()
+        tableView.rowHeight = UITableViewAutomaticDimension
+        
+        animateRowHeightChanges = false
+        animateRowVisibilityChanges = false
         
         setupForm()
+    }
+    
+    public override func viewDidAppear(animated: Bool) {
+        super.viewDidAppear(animated)
+        
+        animateRowHeightChanges = true
+        animateRowVisibilityChanges = true
     }
     
     // MARK: - Methods
@@ -94,6 +109,15 @@ public class FormViewController: UITableViewController, FormManagerDelegate, For
         return UITableViewCell()
     }
     
+    public override func tableView(tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+        if let formSectionTitles = formManager.formSectionTitles {
+            if formSectionTitles.count > section {
+                return formSectionTitles[section]
+            }
+        }
+        return nil
+    }
+    
     // MARK: UITableViewDelegate
     
     public override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
@@ -104,13 +128,13 @@ public class FormViewController: UITableViewController, FormManagerDelegate, For
         tableView.deselectRowAtIndexPath(indexPath, animated: true)
     }
     
-    override public func tableView(tableView: UITableView, willDisplayCell cell: UITableViewCell, forRowAtIndexPath indexPath: NSIndexPath) {
+    public override func tableView(tableView: UITableView, willDisplayCell cell: UITableViewCell, forRowAtIndexPath indexPath: NSIndexPath) {
         cell.separatorInset = UIEdgeInsetsZero
         cell.preservesSuperviewLayoutMargins = false
         cell.layoutMargins = UIEdgeInsetsZero
     }
     
-    override public func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
+    public override func tableView(tableView: UITableView, estimatedHeightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
         return formManager.heightForRowAtIndexPath(indexPath) ?? 44
     }
     
@@ -119,40 +143,6 @@ public class FormViewController: UITableViewController, FormManagerDelegate, For
     public func formManagerDidSetFormSections(sender: FormManager) {
         tableView.reloadData()
     }
-    
-//    // MARK: FormTableViewCellDataSource
-//    
-//    public func labelEdgeInsetsForFormCell(sender: FormTableViewCell, identifier: String) -> UIEdgeInsets {
-//        if let _ = sender as? FormButtonTableViewCell {
-//            return UIEdgeInsetsZero
-//        }
-//        
-//        return UIEdgeInsetsMake(0, 16, 0, 16)
-//    }
-//    
-//    public func valueEdgeInsetsForFormCell(sender: FormTableViewCell, identifier: String) -> UIEdgeInsets {
-//        return UIEdgeInsetsMake(11, 120, 11, 16)
-//    }
-//    
-//    public func buttonEdgeInsetsForFormCell(sender: FormTableViewCell, identifier: String) -> UIEdgeInsets {
-//        return UIEdgeInsetsZero
-//    }
-//
-//    public func bottomLineEdgeInsetsForFormCell(sender: FormTableViewCell, identifier: String) -> UIEdgeInsets {
-//        return UIEdgeInsetsMake(0, 16, 0, 0)
-//    }
-//    
-//    public func bottomLineWidthForFormCell(sender: FormTableViewCell, identifier: String) -> CGFloat {
-//        return 0
-//    }
-//
-//    public func valueForFormCell(sender: FormTableViewCell, identifier: String) -> AnyObject? {
-//        return nil
-//    }
-//    
-//    public func valueTransformerForKey(key: String!, identifier: String?) -> NSValueTransformer! {
-//        return nil
-//    }
     
     // MARK: FormTableViewCellDelegate
     
