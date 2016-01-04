@@ -17,6 +17,8 @@ public class FormManager: NSObject {
     
     public var delegate: FormManagerDelegate?
     
+    public var formSectionTitles: [String]?
+    
     public var formSections: [[FormTableViewCell]]? {
         didSet {
             setupAllFormCells()
