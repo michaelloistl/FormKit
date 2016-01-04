@@ -82,5 +82,9 @@ public class FormButtonTableViewCell: FormTableViewCell {
     
     func buttonTouchedUpInside(sender: UIButton) {
         delegate?.formCell?(self, identifier: identifier, didTouchUpInsideButton: sender)
+        
+        for action in actions {
+            action.closure(value: value)
+        }
     }
 }
