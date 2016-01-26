@@ -9,11 +9,12 @@
 import Foundation
 import UIKit
 
-public class FormTextFieldTableViewCell: FormTextInputTableViewCell, UITextFieldDelegate {
+public class FormTextFieldTableViewCell: FormTextInputTableViewCell, UITextFieldDelegate, FormTextFieldDataSource {
     
-    public lazy var textField: UITextField = {
-        let _textField = UITextField(forAutoLayout: ())
+    public lazy var textField: FormTextField = {
+        let _textField = FormTextField(forAutoLayout: ())
         _textField.delegate = self
+        _textField.dataSource = self
         _textField.addTarget(self, action: Selector("textFieldDidChange:"), forControlEvents: .EditingChanged)
         _textField.backgroundColor = UIColor.clearColor()
         _textField.returnKeyType = .Next
@@ -35,6 +36,7 @@ public class FormTextFieldTableViewCell: FormTextInputTableViewCell, UITextField
     
     lazy var textFieldBottomConstraint: NSLayoutConstraint = {
         let _constraint = NSLayoutConstraint(item: self.textField, attribute: .Bottom, relatedBy: .Equal, toItem: self.contentView, attribute: .Bottom, multiplier: 1.0, constant: 0.0)
+        _constraint.priority = 750
         
         return _constraint
     }()
@@ -133,6 +135,12 @@ public class FormTextFieldTableViewCell: FormTextInputTableViewCell, UITextField
     }
     
     public func textFieldDidEndEditing(textField: UITextField) {
-        
+        delegate?.formCell?(self, identifier: identifier, didResignFirstResponder: textField)
+    }
+    
+    // MARK: FormTextFieldDataSource
+    
+    public func formTextFieldShouldResignFirstResponder(sender: FormTextField) -> Bool {
+        return delegate?.formCellShouldResignFirstResponder?(self) ?? true
     }
 }

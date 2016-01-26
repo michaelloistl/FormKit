@@ -16,6 +16,8 @@
 		6AA9797F1BF7687F007EC8DB /* FormSwitchTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AA9797E1BF7687F007EC8DB /* FormSwitchTableViewCell.swift */; };
 		6AA979811BF768A1007EC8DB /* FormSelectionTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AA979801BF768A1007EC8DB /* FormSelectionTableViewCell.swift */; };
 		6AA979831BF768C1007EC8DB /* FormButtonTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AA979821BF768C1007EC8DB /* FormButtonTableViewCell.swift */; };
+		6AC7D1601C428E0000D7409E /* FormTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AC7D15F1C428E0000D7409E /* FormTextView.swift */; };
+		6AC7D1621C428EA500D7409E /* FormTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AC7D1611C428EA500D7409E /* FormTextField.swift */; };
 		6ADA25161BDFD1FD00D951DB /* FormManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ADA25111BDFD1FD00D951DB /* FormManager.swift */; };
 		6ADA25171BDFD1FD00D951DB /* FormSelectionTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ADA25121BDFD1FD00D951DB /* FormSelectionTableViewController.swift */; };
 		6ADA25181BDFD1FD00D951DB /* FormTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ADA25131BDFD1FD00D951DB /* FormTableViewCell.swift */; };
@@ -45,6 +47,8 @@
 		6AA9797E1BF7687F007EC8DB /* FormSwitchTableViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FormSwitchTableViewCell.swift; sourceTree = "<group>"; };
 		6AA979801BF768A1007EC8DB /* FormSelectionTableViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FormSelectionTableViewCell.swift; sourceTree = "<group>"; };
 		6AA979821BF768C1007EC8DB /* FormButtonTableViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FormButtonTableViewCell.swift; sourceTree = "<group>"; };
+		6AC7D15F1C428E0000D7409E /* FormTextView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FormTextView.swift; sourceTree = "<group>"; };
+		6AC7D1611C428EA500D7409E /* FormTextField.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FormTextField.swift; sourceTree = "<group>"; };
 		6ADA25111BDFD1FD00D951DB /* FormManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FormManager.swift; sourceTree = "<group>"; };
 		6ADA25121BDFD1FD00D951DB /* FormSelectionTableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FormSelectionTableViewController.swift; sourceTree = "<group>"; };
 		6ADA25131BDFD1FD00D951DB /* FormTableViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FormTableViewCell.swift; sourceTree = "<group>"; };
@@ -99,6 +103,15 @@
 			name = FormTableViewCells;
 			sourceTree = "<group>";
 		};
+		6AC7D15E1C428DDA00D7409E /* Classes */ = {
+			isa = PBXGroup;
+			children = (
+				6AC7D15F1C428E0000D7409E /* FormTextView.swift */,
+				6AC7D1611C428EA500D7409E /* FormTextField.swift */,
+			);
+			name = Classes;
+			sourceTree = "<group>";
+		};
 		6ADA25101BDFD1ED00D951DB /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
@@ -133,6 +146,7 @@
 				6ADE2B9E1BCD5A6000A7AB6A /* FormKit.h */,
 				6ADA25111BDFD1FD00D951DB /* FormManager.swift */,
 				6ADA25121BDFD1FD00D951DB /* FormSelectionTableViewController.swift */,
+				6AC7D15E1C428DDA00D7409E /* Classes */,
 				6AA979751BF767A9007EC8DB /* FormTableViewCells */,
 				6ADA25141BDFD1FD00D951DB /* FormValueTransformer.swift */,
 				6ADA25151BDFD1FD00D951DB /* FormViewController.swift */,
@@ -364,12 +378,14 @@
 				6ADA25171BDFD1FD00D951DB /* FormSelectionTableViewController.swift in Sources */,
 				6AA9797B1BF76834007EC8DB /* FormTextViewTableViewCell.swift in Sources */,
 				6ADA25191BDFD1FD00D951DB /* FormValueTransformer.swift in Sources */,
+				6AC7D1621C428EA500D7409E /* FormTextField.swift in Sources */,
 				6ADA25181BDFD1FD00D951DB /* FormTableViewCell.swift in Sources */,
 				6AA979791BF76814007EC8DB /* FormTextFieldTableViewCell.swift in Sources */,
 				6ADA251A1BDFD1FD00D951DB /* FormViewController.swift in Sources */,
 				6AA979771BF767D8007EC8DB /* FormTextInputTableViewCell.swift in Sources */,
 				6AA979831BF768C1007EC8DB /* FormButtonTableViewCell.swift in Sources */,
 				6AA9797F1BF7687F007EC8DB /* FormSwitchTableViewCell.swift in Sources */,
+				6AC7D1601C428E0000D7409E /* FormTextView.swift in Sources */,
 				6ADA25161BDFD1FD00D951DB /* FormManager.swift in Sources */,
 				6AA9797D1BF7685A007EC8DB /* FormDatePickerTableViewCell.swift in Sources */,
 				6AA979811BF768A1007EC8DB /* FormSelectionTableViewCell.swift in Sources */,

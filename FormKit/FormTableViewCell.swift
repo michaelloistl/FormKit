@@ -15,6 +15,8 @@ import PureLayout
 @objc public protocol FormTableViewCellDelegate {
     optional func formCell(sender: FormTableViewCell, identifier: String, didBecomeFirstResponder firstResponder: UIView?)
     
+    optional func formCell(sender: FormTableViewCell, identifier: String, didResignFirstResponder firstResponder: UIView?)
+    
     optional func formCell(sender: FormTableViewCell, identifier: String, didChangeValue value: AnyObject?)
     
     optional func formCell(sender: FormTableViewCell, identifier: String, didChangeRowHeightFrom from: CGFloat, to: CGFloat)
@@ -26,6 +28,8 @@ import PureLayout
     optional func formCell(sender: FormTableViewCell, identifier: String, shouldValidateWithIdentifier validationIdentifier: String) -> Bool
     
     optional func formCell(sender: FormTableViewCell, identifier: String, didTouchUpInsideButton button: UIButton)
+    
+    optional func formCellShouldResignFirstResponder(sender: FormTableViewCell) -> Bool
 }
 
 public struct FormCellConfiguration {
@@ -149,17 +153,17 @@ public class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
             
             delegate?.formCell?(self, identifier: identifier, didChangeValue: value)
             
-            cachedRowHeight = self.rowHeight()
+            cachedRowSize = CGSizeMake(CGRectGetWidth(bounds), self.rowHeight())
             
-            setNeedsUpdateConstraints()
-            setNeedsLayout()
+            updateConstraints()
+            layoutSubviews()
         }
     }
     
-    var cachedRowHeight: CGFloat = 0 {
+    var cachedRowSize: CGSize = CGSizeZero {
         didSet {
-            if oldValue != cachedRowHeight {
-                delegate?.formCell?(self, identifier: identifier, didChangeRowHeightFrom: oldValue, to: cachedRowHeight)
+            if oldValue.height != 0 && oldValue.height != cachedRowSize.height { // oldValue.width != cachedRowSize.width ||
+                delegate?.formCell?(self, identifier: identifier, didChangeRowHeightFrom: oldValue.height, to: cachedRowSize.height)
             }
         }
     }
@@ -193,8 +197,10 @@ public class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
     
     public var editable = true {
         didSet {
-            setNeedsUpdateConstraints()
-            setNeedsLayout()
+            if editable != oldValue {
+                updateConstraints()
+                layoutSubviews()
+            }
         }
     }
     
@@ -332,6 +338,7 @@ public class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
     
     lazy var valueTextViewBottomConstraint: NSLayoutConstraint = {
         let _constraint = NSLayoutConstraint(item: self.valueTextView, attribute: .Bottom, relatedBy: .Equal, toItem: self.contentView, attribute: .Bottom, multiplier: 1.0, constant: 0.0)
+        _constraint.priority = 750
         
         return _constraint
     }()
@@ -435,9 +442,13 @@ public class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
     }
     
     override public func layoutSubviews() {
-        super.layoutSubviews()
-
         config()
+        
+        if CGRectGetWidth(bounds) != cachedRowSize.width {
+            cachedRowSize = CGSizeMake(CGRectGetWidth(bounds), self.rowHeight())
+        }
+        
+        super.layoutSubviews()
     }
     
     // MARK: - Methods
@@ -461,6 +472,7 @@ public class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
     public func config() {
         for configuration in configurations {
             configuration.config(cell: self, value: self.value, identifier: self.identifier, label: self.label, valueView: self.valueView())
+            setNeedsUpdateConstraints()
         }
     }
     
@@ -672,12 +684,16 @@ public class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
     
     // MARK: FormTextViewDataSource
     
-    func formTextViewMinHeight(sender: FormTextView) -> CGFloat {
+    public func formTextViewMinHeight(sender: FormTextView) -> CGFloat {
         return minRowHeight - valueViewInsets.top - valueViewInsets.bottom
     }
     
-    func formTextViewMaxHeight(sender: FormTextView) -> CGFloat {
+    public func formTextViewMaxHeight(sender: FormTextView) -> CGFloat {
         return maxRowHeight - valueViewInsets.top - valueViewInsets.bottom
+    }
+    
+    public func formTextViewShouldResignFirstResponder(sender: FormTextView) -> Bool {
+        return delegate?.formCellShouldResignFirstResponder?(self) ?? true
     }
 }
 

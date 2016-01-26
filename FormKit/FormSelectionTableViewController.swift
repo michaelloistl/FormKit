@@ -15,6 +15,7 @@ public protocol FormSelectable {
 
 public protocol FormSelectionTableViewControllerDelegate {
     func formSelectionTableViewController(sender: FormSelectionTableViewController, didSelectObjects objects: [AnyObject], withFormTableViewCellIdentifier identifier: String?)
+    func formSelectionTableViewController(sender: FormSelectionTableViewController,  tableView: UITableView, willDisplayCell cell: UITableViewCell, forRowAtIndexPath indexPath: NSIndexPath)
 }
 
 public class FormSelectionTableViewController: UITableViewController {
@@ -48,9 +49,9 @@ public class FormSelectionTableViewController: UITableViewController {
 
         tableView.registerClass(UITableViewCell.self, forCellReuseIdentifier: CellIdentifier)
         
-        if allowsMultipleSelection {
-            navigationItem.rightBarButtonItem = clearBarButtonItem
-        }
+        navigationItem.rightBarButtonItem = clearBarButtonItem
+//        if allowsMultipleSelection {
+//        }
     }
 
     override public func viewWillDisappear(animated: Bool) {
@@ -73,6 +74,10 @@ public class FormSelectionTableViewController: UITableViewController {
     func clearBarButtonItemTouchedUpInside(sender: UIBarButtonItem) {
         selectedObjects.removeAll()
         tableView.reloadData()
+
+        if !allowsMultipleSelection {
+            navigationController?.popViewControllerAnimated(true)
+        }
     }
     
     // MARK: - Protocols
@@ -89,7 +94,6 @@ public class FormSelectionTableViewController: UITableViewController {
         let selectionObject = selectionObjects[indexPath.row]
         tableViewCell.textLabel?.text = selectionObject.stringValue()
         tableViewCell.selectionStyle = (allowsMultipleSelection) ? .None : .Default
-        
         tableViewCell.accessoryType = (selectedObjects.indexOf({ $0.identifier() == selectionObject.identifier()}) == nil) ? .None : .Checkmark
         
         return tableViewCell
@@ -98,14 +102,14 @@ public class FormSelectionTableViewController: UITableViewController {
     // MARK: UITableViewDelegate
     
     override public func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
-        if !allowsMultipleSelection {
-            selectedObjects.removeAll()
-        }
-        
         let selectionObject = selectionObjects[indexPath.row]
         if let index = selectedObjects.indexOf({ $0.identifier() == selectionObject.identifier()}) {
             selectedObjects.removeAtIndex(index)
         } else {
+            if !allowsMultipleSelection {
+                selectedObjects.removeAll()
+            }
+            
             selectedObjects.append(selectionObject)
         }
         
@@ -117,6 +121,10 @@ public class FormSelectionTableViewController: UITableViewController {
         } else {
             navigationController?.popViewControllerAnimated(true)
         }
+    }
+    
+    override public func tableView(tableView: UITableView, willDisplayCell cell: UITableViewCell, forRowAtIndexPath indexPath: NSIndexPath) {
+        delegate?.formSelectionTableViewController(self, tableView: tableView, willDisplayCell: cell, forRowAtIndexPath: indexPath)
     }
 
 }

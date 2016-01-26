@@ -49,6 +49,7 @@ public class FormTextViewTableViewCell: FormTextInputTableViewCell, NSLayoutMana
     
     lazy var textViewBottomConstraint: NSLayoutConstraint = {
         let _constraint = NSLayoutConstraint(item: self.textView, attribute: .Bottom, relatedBy: .Equal, toItem: self.contentView, attribute: .Bottom, multiplier: 1.0, constant: 0.0)
+        _constraint.priority = 750
         
         return _constraint
     }()
@@ -144,7 +145,7 @@ public class FormTextViewTableViewCell: FormTextInputTableViewCell, NSLayoutMana
     }
     
     public func textViewDidEndEditing(textView: UITextView) {
-        
+        delegate?.formCell?(self, identifier: identifier, didResignFirstResponder: textView)
     }
     
     // MARK: ScrollViewDelegate
@@ -182,115 +183,5 @@ public class FormTextViewTableViewCell: FormTextInputTableViewCell, NSLayoutMana
             return rowHeight
         }
         return 0
-    }
-}
-
-// MARK: - SubClasses
-
-protocol FormTextViewDataSource {
-    func formTextViewMinHeight(sender: FormTextView) -> CGFloat
-    func formTextViewMaxHeight(sender: FormTextView) -> CGFloat
-}
-
-public class FormTextView: UITextView {
-    
-    var dataSource: FormTextViewDataSource?
-    
-    public var placeholder: String? {
-        didSet {
-            placeHolderLabel.text = placeholder
-            layoutSubviews()
-        }
-    }
-    
-    override public var text: String? {
-        didSet {
-            
-        }
-    }
-    
-    override public var font: UIFont? {
-        didSet {
-            placeHolderLabel.font = font
-        }
-    }
-    
-    override public var textAlignment: NSTextAlignment {
-        didSet {
-            placeHolderLabel.textAlignment = textAlignment
-        }
-    }
-    
-    public lazy var placeHolderLabel: UILabel = {
-        let _placeHolderLabel = UILabel()
-        _placeHolderLabel.font = self.font
-        _placeHolderLabel.textAlignment = self.textAlignment
-        _placeHolderLabel.textColor = UIColor(red: 0, green: 0, blue: 0.0980392, alpha: 0.22)
-        
-        return _placeHolderLabel
-    }()
-    
-    // MARK: - Initializers
-    
-    override init(frame: CGRect, textContainer: NSTextContainer?) {
-        super.init(frame: frame, textContainer: textContainer)
-        
-        addSubview(placeHolderLabel)
-        
-        textContainer?.lineFragmentPadding = 0
-        textContainerInset = UIEdgeInsetsZero
-        
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: Selector("handleTextViewTextDidChangeNotification:"), name: UITextViewTextDidChangeNotification, object: nil)
-        
-        placeHolderLabel.autoPinEdgesToSuperviewEdgesWithInsets(UIEdgeInsetsZero, excludingEdge: .Bottom)
-    }
-    
-    required public init?(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
-    deinit {
-        NSNotificationCenter.defaultCenter().removeObserver(self)
-    }
-    
-    // MARK: - Super
-    
-    public override func intrinsicContentSize() -> CGSize {
-        let width = super.intrinsicContentSize().width
-        var height = sizeThatFits(CGSizeMake(width, CGFloat.max)).height
-        
-        if let minHeight = dataSource?.formTextViewMinHeight(self) {
-            height = max(height, minHeight)
-        }
-        
-        if let maxHeight = dataSource?.formTextViewMaxHeight(self) {
-            height = min(height, maxHeight)
-        }
-        
-        return CGSizeMake(width, height)
-    }
-    
-//    override public func layoutSubviews() {
-//        super.layoutSubviews()
-//        
-//        // PlaceHolderLabel
-//        placeHolderLabel.sizeToFit()
-//        
-//        let placeHolderLabelOriginX: CGFloat = textContainerInset.left + contentInset.left
-//        let placeHolderLabelOriginY: CGFloat = textContainerInset.top + contentInset.top + 1.0
-//        let placeHolderLabelSizeWidth: CGFloat = CGRectGetWidth(placeHolderLabel.bounds)
-//        let placeHolderLabelSizeHeight: CGFloat = CGRectGetHeight(placeHolderLabel.bounds)
-//        
-//        placeHolderLabel.frame = CGRectMake(placeHolderLabelOriginX, placeHolderLabelOriginY, placeHolderLabelSizeWidth, placeHolderLabelSizeHeight)
-//    }
-    
-    // MARK: Notification Handler Functions
-    
-    func handleTextViewTextDidChangeNotification(sender: NSNotification) {
-        if let text = text {
-            placeHolderLabel.hidden = text.characters.count > 0
-        } else {
-            placeHolderLabel.hidden = false
-        }
     }
 }

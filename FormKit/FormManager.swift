@@ -31,7 +31,9 @@ public class FormManager: NSObject {
         }
     }
     
-    var visibleFormSections: [[FormTableViewCell]]?
+    public var visibleFormSections: [[FormTableViewCell]]?
+    
+    public var shouldResignFirstResponder = true
     
     // MARK: - Initializers
     
@@ -160,7 +162,7 @@ public class FormManager: NSObject {
                     
                     var nextIndex = index
                     while !canBeFirstResponder {
-                        nextIndex++
+                        nextIndex += 1
                         
                         if nextIndex > (allFormCells.count - 1) {
                             nextIndex = 0

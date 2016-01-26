@@ -55,6 +55,7 @@ public class FormTextInputTableViewCell: FormTableViewCell {
     
     lazy var characterLabelBottomConstraint: NSLayoutConstraint = {
         let _constraint = NSLayoutConstraint(item: self.characterLabel, attribute: .Bottom, relatedBy: .Equal, toItem: self.contentView, attribute: .Bottom, multiplier: 1.0, constant: 0.0)
+        _constraint.priority = 750
         
         return _constraint
     }()
