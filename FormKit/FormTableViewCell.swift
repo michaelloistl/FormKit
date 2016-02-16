@@ -152,7 +152,7 @@ public class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
             updateUI()
             
             delegate?.formCell?(self, identifier: identifier, didChangeValue: value)
-            
+        
             cachedRowSize = CGSizeMake(CGRectGetWidth(bounds), self.rowHeight())
             
             updateConstraints()
@@ -351,7 +351,7 @@ public class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
     
     public lazy var bottomSeparatorView: UIView = {
         let _bottomSeparatorView = UIView(forAutoLayout: ())
-        _bottomSeparatorView.backgroundColor = UIColor.lightGrayColor()
+        _bottomSeparatorView.backgroundColor = UIColor(red: 200/255, green: 199/255, blue: 204/255, alpha: 1)
         
         return _bottomSeparatorView
         }()
@@ -391,6 +391,9 @@ public class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
         pickerClearButton.autoPinEdge(.Left, toEdge: .Left, ofView: keyboardAccessoryView, withOffset: 16)
         pickerDoneButton.autoAlignAxis(.Horizontal, toSameAxisOfView: keyboardAccessoryView)
         pickerDoneButton.autoPinEdge(.Right, toEdge: .Right, ofView: keyboardAccessoryView, withOffset: -16)
+        
+        // bottomSeparatorView
+        bottomSeparatorView.autoPinEdge(.Bottom, toEdge: .Bottom, ofView: contentView)
         
         // Constraints
         contentView.addConstraints([labelTopConstraint, labelLeftConstraint, labelBottomConstraint, labelRightConstraint])
