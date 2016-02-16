@@ -53,6 +53,8 @@ public class FormTextView: UITextView {
     override init(frame: CGRect, textContainer: NSTextContainer?) {
         super.init(frame: frame, textContainer: textContainer)
         
+        scrollsToTop = false
+        
         addSubview(placeHolderLabel)
         
         textContainer?.lineFragmentPadding = 0
