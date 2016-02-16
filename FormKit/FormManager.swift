@@ -11,6 +11,7 @@ import UIKit
 
 public protocol FormManagerDelegate {
     func formManagerDidSetFormSections(sender: FormManager)
+    func formManagerShouldReloadForm(sender: FormManager)
 }
 
 public class FormManager: NSObject {
@@ -35,9 +36,32 @@ public class FormManager: NSObject {
     
     public var shouldResignFirstResponder = true
     
+    public var shouldReloadAfterTransaction: Bool = false
+    
+    public var reloadTransaction: Bool = false {
+        didSet {
+            if reloadTransaction {
+                shouldReloadAfterTransaction = false
+            } else {
+                if shouldReloadAfterTransaction {
+                    shouldReloadAfterTransaction = false
+                    delegate?.formManagerShouldReloadForm(self)
+                }
+            }
+        }
+    }
+    
     // MARK: - Initializers
     
     // MARK: - Methods
+    
+    private func beginReloadTransaction() {
+        reloadTransaction = true
+    }
+    
+    private func endReloadTransaction() {
+        reloadTransaction = false
+    }
     
     public func allFormCells() -> [FormTableViewCell] {
         var allFormCells = [FormTableViewCell]()
@@ -81,9 +105,13 @@ public class FormManager: NSObject {
     }
     
     public func setAllFormCellValues() {
+        beginReloadTransaction()
+        
         for formCell in allVisibleFormCells() {
             formCell.setValue()
         }
+        
+        endReloadTransaction()
     }
     
     public func writeAllFormCellValues() {
