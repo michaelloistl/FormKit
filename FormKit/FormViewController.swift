@@ -8,7 +8,9 @@
 
 import Foundation
 
-public class FormViewController: UITableViewController, FormManagerDelegate, FormTableViewCellDelegate, FormSelectionTableViewControllerDelegate {
+public class FormViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, FormManagerDelegate, FormTableViewCellDelegate, FormSelectionTableViewControllerDelegate {
+    
+    private var tableViewStyle: UITableViewStyle = .Grouped
     
     public var animateRowHeightChanges = false
     public var animateRowVisibilityChanges = false
@@ -31,7 +33,35 @@ public class FormViewController: UITableViewController, FormManagerDelegate, For
         return _formManager
         }()
     
+    public lazy var tableView: UITableView = {
+        let _tableView = UITableView(frame: CGRect.zero, style: self.tableViewStyle)
+        _tableView.translatesAutoresizingMaskIntoConstraints = false
+        
+        _tableView.dataSource = self
+        _tableView.delegate = self
+        _tableView.scrollsToTop = true
+
+        _tableView.tableFooterView = UIView()
+        _tableView.rowHeight = UITableViewAutomaticDimension
+        
+        return _tableView
+    }()
+    
     // MARK: - Initializers
+    
+    public convenience init(style: UITableViewStyle) {
+        self.init(nibName: nil, bundle: nil)
+        
+        self.tableViewStyle = style
+    }
+    
+    public override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: NSBundle?) {
+        super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
+    }
+    
+    public required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     
     deinit {
         NSNotificationCenter.defaultCenter().removeObserver(self)
@@ -41,9 +71,10 @@ public class FormViewController: UITableViewController, FormManagerDelegate, For
     
     public override func viewDidLoad() {
         super.viewDidLoad()
-
-        tableView.tableFooterView = UIView()
-        tableView.rowHeight = UITableViewAutomaticDimension
+        
+        view.addSubview(tableView)
+        
+        tableView.autoPinEdgesToSuperviewEdges()
         
         setupForm()
     }
@@ -93,22 +124,22 @@ public class FormViewController: UITableViewController, FormManagerDelegate, For
     
     // MARK: UITableViewDataSource
     
-    override public func numberOfSectionsInTableView(tableView: UITableView) -> Int {
+    public func numberOfSectionsInTableView(tableView: UITableView) -> Int {
         return formManager.numberOfSections()
     }
     
-    override public func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    public func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return formManager.numberOfRowsInSection(section)
     }
     
-    override public func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
+    public func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         if let formCell = formManager.cellForRowAtIndexPath(indexPath) {
             return formCell
         }
         return UITableViewCell()
     }
     
-    public override func tableView(tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+    public func tableView(tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         if let formSectionTitles = formManager.formSectionTitles {
             if formSectionTitles.count > section {
                 return formSectionTitles[section]
@@ -119,7 +150,7 @@ public class FormViewController: UITableViewController, FormManagerDelegate, For
     
     // MARK: UITableViewDelegate
     
-    public override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
+    public func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
         if let formCell = tableView.cellForRowAtIndexPath(indexPath) as? FormTableViewCell {
             didSelectFormCell(formCell, withIdentifier: formCell.identifier)
         }
@@ -127,19 +158,23 @@ public class FormViewController: UITableViewController, FormManagerDelegate, For
         tableView.deselectRowAtIndexPath(indexPath, animated: true)
     }
     
-    public override func tableView(tableView: UITableView, willDisplayCell cell: UITableViewCell, forRowAtIndexPath indexPath: NSIndexPath) {
+    public func tableView(tableView: UITableView, willDisplayCell cell: UITableViewCell, forRowAtIndexPath indexPath: NSIndexPath) {
         cell.separatorInset = UIEdgeInsetsZero
         cell.preservesSuperviewLayoutMargins = false
         cell.layoutMargins = UIEdgeInsetsZero
     }
     
-    public override func tableView(tableView: UITableView, estimatedHeightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
+    public func tableView(tableView: UITableView, estimatedHeightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
         return formManager.heightForRowAtIndexPath(indexPath) ?? 44
     }
     
     // MARK: FormManagerDelegate {
     
     public func formManagerDidSetFormSections(sender: FormManager) {
+        reloadTableView()
+    }
+    
+    public func formManagerShouldReloadForm(sender: FormManager) {
         reloadTableView()
     }
     
@@ -166,37 +201,43 @@ public class FormViewController: UITableViewController, FormManagerDelegate, For
     }
     
     public func formCell(sender: FormTableViewCell, identifier: String, didChangeRowHeightFrom from: CGFloat, to: CGFloat) {
-        NSLog("didChangeRowHeightFrom: \(identifier) from: \(from) to: \(to)")
-        if animateRowHeightChanges {
-            tableView.beginUpdates()
-            tableView.endUpdates()
+        if formManager.reloadTransaction {
+            formManager.shouldReloadAfterTransaction = true
         } else {
-            reloadTableView()
+            if animateRowHeightChanges {
+                tableView.beginUpdates()
+                tableView.endUpdates()
+            } else {
+                reloadTableView()
+            }
         }
     }
     
     public func formCell(sender: FormTableViewCell, identifier: String, didChangeRowVisibilityAtIndexPath from: NSIndexPath?, to: NSIndexPath?) {
-        NSLog("didChangeRowVisibilityAtIndexPath: \(identifier)")
-        if animateRowVisibilityChanges {
-            tableView.beginUpdates()
-            
-            // Insert
-            if from == nil {
-                if let indexPath = to {
-                    tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: .Middle)
-                }
-            }
-                
-                // Remove
-            else if to == nil {
-                if let indexPath = from {
-                    tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Middle)
-                }
-            }
-            
-            tableView.endUpdates()
+        if formManager.reloadTransaction {
+            formManager.shouldReloadAfterTransaction = true
         } else {
-            reloadTableView()
+            if animateRowVisibilityChanges {
+                tableView.beginUpdates()
+                
+                // Insert
+                if from == nil {
+                    if let indexPath = to {
+                        tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: .Middle)
+                    }
+                }
+                    
+                    // Remove
+                else if to == nil {
+                    if let indexPath = from {
+                        tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Middle)
+                    }
+                }
+                
+                tableView.endUpdates()
+            } else {
+                reloadTableView()
+            }
         }
     }
     
