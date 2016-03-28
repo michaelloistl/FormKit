@@ -263,7 +263,7 @@ public class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
         let _pickerDoneButton = UIButton(type: .System)
         _pickerDoneButton.translatesAutoresizingMaskIntoConstraints = false
         _pickerDoneButton.setTitle("Done", forState: .Normal)
-        _pickerDoneButton.addTarget(self, action: Selector("pickerDoneButtonTouchedUpInside:"), forControlEvents: .TouchUpInside)
+        _pickerDoneButton.addTarget(self, action: #selector(FormTableViewCell.pickerDoneButtonTouchedUpInside(_:)), forControlEvents: .TouchUpInside)
         
         return _pickerDoneButton
         }()
@@ -272,7 +272,7 @@ public class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
         let _pickerClearButton = UIButton(type: .System)
         _pickerClearButton.translatesAutoresizingMaskIntoConstraints = false
         _pickerClearButton.setTitle("Clear", forState: .Normal)
-        _pickerClearButton.addTarget(self, action: Selector("pickerClearButtonTouchedUpInside:"), forControlEvents: .TouchUpInside)
+        _pickerClearButton.addTarget(self, action: #selector(FormTableViewCell.pickerClearButtonTouchedUpInside(_:)), forControlEvents: .TouchUpInside)
         
         return _pickerClearButton
         }()

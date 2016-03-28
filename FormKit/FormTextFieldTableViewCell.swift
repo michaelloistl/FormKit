@@ -17,7 +17,7 @@ public class FormTextFieldTableViewCell: FormTextInputTableViewCell, UITextField
         let _textField = FormTextField(forAutoLayout: ())
         _textField.delegate = self
         _textField.dataSource = self
-        _textField.addTarget(self, action: Selector("textFieldDidChange:"), forControlEvents: .EditingChanged)
+        _textField.addTarget(self, action: #selector(FormTextFieldTableViewCell.textFieldDidChange(_:)), forControlEvents: .EditingChanged)
         _textField.backgroundColor = UIColor.clearColor()
         _textField.returnKeyType = .Next
         

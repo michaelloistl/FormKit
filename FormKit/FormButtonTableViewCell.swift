@@ -13,7 +13,7 @@ public class FormButtonTableViewCell: FormTableViewCell {
     
     public lazy var button: UIButton = {
         let _button = UIButton(forAutoLayout: ())
-        _button.addTarget(self, action: Selector("buttonTouchedUpInside:"), forControlEvents: .TouchUpInside)
+        _button.addTarget(self, action: #selector(FormButtonTableViewCell.buttonTouchedUpInside(_:)), forControlEvents: .TouchUpInside)
         _button.setTitleColor(UIColor.blackColor(), forState: .Normal)
         
         return _button

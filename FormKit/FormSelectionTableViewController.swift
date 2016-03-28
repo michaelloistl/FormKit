@@ -36,7 +36,7 @@ public class FormSelectionTableViewController: UITableViewController {
     public var delegate: FormSelectionTableViewControllerDelegate?
     
     lazy var clearBarButtonItem: UIBarButtonItem = {
-        let _barButtonItem = UIBarButtonItem(title: "Clear", style: .Plain, target: self, action: Selector("clearBarButtonItemTouchedUpInside:"))
+        let _barButtonItem = UIBarButtonItem(title: "Clear", style: .Plain, target: self, action: #selector(FormSelectionTableViewController.clearBarButtonItemTouchedUpInside(_:)))
         _barButtonItem.enabled = false
 
         return _barButtonItem

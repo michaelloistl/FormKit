@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import UIKit
 
 public class FormViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, FormManagerDelegate, FormTableViewCellDelegate, FormSelectionTableViewControllerDelegate {
     
