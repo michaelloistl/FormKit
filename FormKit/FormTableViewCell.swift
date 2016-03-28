@@ -128,17 +128,20 @@ public struct FormCellDataSource {
     
     public typealias SetFormCellValueClosure = () -> AnyObject?
     public typealias GetFormCellValueClosure = (value: AnyObject?) -> AnyObject?
+    public typealias DidChangeFormCellValueClosure = (value: AnyObject?) -> Void
     public typealias WriteObjectValueClosure = (value: AnyObject?) -> Void
 
     let setFormCellValue: SetFormCellValueClosure
     let getFormCellValue: GetFormCellValueClosure
+    let didChangeFormCellValue: DidChangeFormCellValueClosure
     let writeObjectValue: WriteObjectValueClosure
     
     // MARK: - Initializers
     
-    public init(setFormCellValue: SetFormCellValueClosure, getFormCellValue: GetFormCellValueClosure, writeObjectValue: WriteObjectValueClosure) {
+    public init(setFormCellValue: SetFormCellValueClosure, getFormCellValue: GetFormCellValueClosure, didChangeFormCellValue: DidChangeFormCellValueClosure, writeObjectValue: WriteObjectValueClosure) {
         self.setFormCellValue = setFormCellValue
         self.getFormCellValue = getFormCellValue
+        self.didChangeFormCellValue = didChangeFormCellValue
         self.writeObjectValue = writeObjectValue
     }
 }
@@ -150,6 +153,8 @@ public class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
     public var value: AnyObject? {
         didSet {
             updateUI()
+            
+            valueDataSource?.didChangeFormCellValue(value: value)
             
             delegate?.formCell?(self, identifier: identifier, didChangeValue: value)
         
@@ -548,9 +553,7 @@ public class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
     }
     
     public func writeObjectValue() {
-        if let valueDataSource = valueDataSource {
-            valueDataSource.writeObjectValue(value: self.value)
-        }
+        valueDataSource?.writeObjectValue(value: self.value)
     }
     
     // MARK: Actions
