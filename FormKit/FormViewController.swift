@@ -33,7 +33,7 @@ public class FormViewController: UIViewController, UITableViewDataSource, UITabl
         return _formManager
         }()
     
-    public lazy var tableView: UITableView = {
+    public lazy var tableView: UITableView! = {
         let _tableView = UITableView(frame: CGRect.zero, style: self.tableViewStyle)
         _tableView.translatesAutoresizingMaskIntoConstraints = false
         
