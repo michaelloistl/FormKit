@@ -11,6 +11,8 @@ import UIKit
 
 public class FormTextFieldTableViewCell: FormTextInputTableViewCell, UITextFieldDelegate, FormTextFieldDataSource {
     
+    public var returnKeyAction: FormCellAction?
+    
     public lazy var textField: FormTextField = {
         let _textField = FormTextField(forAutoLayout: ())
         _textField.delegate = self
@@ -115,6 +117,8 @@ public class FormTextFieldTableViewCell: FormTextInputTableViewCell, UITextField
     public func textFieldShouldReturn(textField: UITextField) -> Bool {
         if textField.returnKeyType == .Next {
             nextFormTableViewCell()
+        } else {
+            returnKeyAction?.closure(value: value)
         }
         
         return true
