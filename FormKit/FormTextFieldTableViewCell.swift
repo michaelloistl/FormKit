@@ -51,8 +51,8 @@ public class FormTextFieldTableViewCell: FormTextInputTableViewCell, UITextField
     
     // MARK: - Initializers
     
-    required public init(identifier: String, delegate: FormTableViewCellDelegate!) {
-        super.init(identifier: identifier, delegate: delegate)
+    required public init(labelText: String?, identifier: String? = nil, configurations: [FormCellConfiguration]? = nil, delegate: FormTableViewCellDelegate?) {
+        super.init(labelText: labelText, identifier: identifier, configurations: configurations, delegate: delegate)
         
         contentView.insertSubview(textField, atIndex: 0)
         
@@ -135,11 +135,11 @@ public class FormTextFieldTableViewCell: FormTextInputTableViewCell, UITextField
     
     public func textFieldDidBeginEditing(textField: UITextField) {
         errorState = false
-        delegate?.formCell?(self, identifier: identifier, didBecomeFirstResponder: textField)
+        delegate?.formCell?(self, didBecomeFirstResponder: textField)
     }
     
     public func textFieldDidEndEditing(textField: UITextField) {
-        delegate?.formCell?(self, identifier: identifier, didResignFirstResponder: textField)
+        delegate?.formCell?(self, didResignFirstResponder: textField)
     }
     
     // MARK: FormTextFieldDataSource

@@ -13,7 +13,7 @@ public class FormDatePickerTableViewCell: FormTextFieldTableViewCell {
     
     public lazy var datePicker: UIDatePicker = {
         let _datePicker = UIDatePicker()
-        _datePicker.addTarget(self, action: Selector("datePickerDidChangeValue:"), forControlEvents: .ValueChanged)
+        _datePicker.addTarget(self, action: #selector(FormDatePickerTableViewCell.datePickerDidChangeValue(_:)), forControlEvents: .ValueChanged)
         
         return _datePicker
     }()
@@ -28,8 +28,8 @@ public class FormDatePickerTableViewCell: FormTextFieldTableViewCell {
     
     // MARK: Initializers
     
-    required public init(identifier: String, delegate: FormTableViewCellDelegate!) {
-        super.init(identifier: identifier, delegate: delegate)
+    required public init(labelText: String?, identifier: String? = nil, configurations: [FormCellConfiguration]? = nil, delegate: FormTableViewCellDelegate?) {
+        super.init(labelText: labelText, identifier: identifier, configurations: configurations, delegate: delegate)
         
         selectionStyle = .None
         

@@ -62,7 +62,7 @@ public struct FormSelectionCellDataSource {
 
 public class FormSelectionTableViewCell: FormTableViewCell {
 
-    public var selectionDataSource: FormSelectionCellDataSource!
+    public var selectionDataSource: FormSelectionCellDataSource?
     
     public var allowsMultipleSelection = false
     
@@ -72,17 +72,17 @@ public class FormSelectionTableViewCell: FormTableViewCell {
     
     // MARK: - Initializers
     
-    required public init(identifier: String, delegate: FormTableViewCellDelegate!, selectionObjectsClosure: FormSelectionCellDataSource.SetFormCellSelectionObjectsClosure, selectedObjectsClosure: FormSelectionCellDataSource.SetFormCellSelectedObjectsClosure) {
+    required public init(labelText: String?, identifier: String? = nil, configurations: [FormCellConfiguration]? = nil, delegate: FormTableViewCellDelegate?, selectionDataSource: FormSelectionCellDataSource?) {
 
-        self.selectionDataSource = FormSelectionCellDataSource(selectionObjectsClosure: selectionObjectsClosure, selectedObjectsClosure: selectedObjectsClosure)
+        self.selectionDataSource = selectionDataSource
         
-        super.init(identifier: identifier, delegate: delegate)
+        super.init(labelText: labelText, identifier: identifier, configurations: configurations, delegate: delegate)
         
         accessoryType = .DisclosureIndicator
     }
 
-    required public init(identifier: String, delegate: FormTableViewCellDelegate!) {
-        super.init(identifier: identifier, delegate: delegate)
+    required public init(labelText: String?, identifier: String?, configurations: [FormCellConfiguration]?, delegate: FormTableViewCellDelegate?) {
+        super.init(labelText: labelText, identifier: identifier, configurations: configurations, delegate: delegate)
         
         accessoryType = .DisclosureIndicator
     }

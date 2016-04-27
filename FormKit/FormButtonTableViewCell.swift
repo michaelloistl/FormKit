@@ -45,8 +45,8 @@ public class FormButtonTableViewCell: FormTableViewCell {
     
     // MARK: Initializers
     
-    required public init(identifier: String, delegate: FormTableViewCellDelegate!) {
-        super.init(identifier: identifier, delegate: delegate)
+    required public init(labelText: String?, identifier: String? = nil, configurations: [FormCellConfiguration]? = nil, delegate: FormTableViewCellDelegate?) {
+        super.init(labelText: labelText, identifier: identifier, configurations: configurations, delegate: delegate)
         
         valueTextView.hidden = true
         selectionStyle = .None
@@ -81,7 +81,7 @@ public class FormButtonTableViewCell: FormTableViewCell {
     // MARK: Actions
     
     func buttonTouchedUpInside(sender: UIButton) {
-        delegate?.formCell?(self, identifier: identifier, didTouchUpInsideButton: sender)
+        delegate?.formCell?(self, didTouchUpInsideButton: sender)
         
         for action in actions {
             action.closure(value: value)

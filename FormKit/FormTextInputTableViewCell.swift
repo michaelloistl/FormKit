@@ -19,7 +19,7 @@ public class FormTextInputTableViewCell: FormTableViewCell {
         case BottomRight
     }
     
-    var characterlimit: Int = 0 {
+    public var characterlimit: Int = 0 {
         didSet {
             characterLabel.hidden = characterlimit == 0
             updateCharacterLabelWithCharacterCount(0)
@@ -68,8 +68,8 @@ public class FormTextInputTableViewCell: FormTableViewCell {
     
     // MARK: - Initializers
     
-    required public init(identifier: String, delegate: FormTableViewCellDelegate!) {
-        super.init(identifier: identifier, delegate: delegate)
+    required public init(labelText: String?, identifier: String? = nil, configurations: [FormCellConfiguration]? = nil, delegate: FormTableViewCellDelegate?) {
+        super.init(labelText: labelText, identifier: identifier, configurations: configurations, delegate: delegate)
         
         valueTextView.hidden = true
         
@@ -131,6 +131,6 @@ public class FormTextInputTableViewCell: FormTableViewCell {
     }
     
     func nextFormTableViewCell() {
-        delegate?.formCellDidRequestNextFormTableViewCell?(self, identifier: identifier)
+        delegate?.formCellDidRequestNextFormTableViewCell?(self)
     }
 }

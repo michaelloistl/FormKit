@@ -32,7 +32,7 @@ public class FormManager: NSObject {
         }
     }
     
-    public var visibleFormSections: [[FormTableViewCell]]?
+    public var visibleFormSections = [[FormTableViewCell]]()
     
     public var shouldResignFirstResponder = true
     
@@ -75,27 +75,23 @@ public class FormManager: NSObject {
     
     public func allVisibleFormCells() -> [FormTableViewCell] {
         var allVisibleFormCells = [FormTableViewCell]()
-        if let visibleFormSections = visibleFormSections {
-            for section in visibleFormSections {
-                allVisibleFormCells += section
-            }
+        for section in visibleFormSections {
+            allVisibleFormCells += section
         }
         return allVisibleFormCells
     }
     
     public func indexPathForCell(cell: FormTableViewCell) -> NSIndexPath? {
-        if let visibleFormSections = visibleFormSections {
-            for (index, section) in visibleFormSections.enumerate() {
-                if let row = section.indexOf(cell) {
-                    return NSIndexPath(forRow: row, inSection: index)
-                }
+        for (index, section) in visibleFormSections.enumerate() {
+            if let row = section.indexOf(cell) {
+                return NSIndexPath(forRow: row, inSection: index)
             }
         }
         return nil
     }
     
     public func section(section: Int) -> AnyObject? {
-        return visibleFormSections?[section]
+        return visibleFormSections[section]
     }
     
     public func setupAllFormCells() {
@@ -215,25 +211,23 @@ public class FormManager: NSObject {
     // MARK: UITableViewDataSource
     
     public func numberOfSections() -> Int {
-        return visibleFormSections?.count ?? 0
+        return visibleFormSections.count
     }
     
     public func numberOfRowsInSection(section: Int) -> Int {
-        return visibleFormSections?[section].count ?? 0
+        return visibleFormSections[section].count
     }
     
-    public func cellForRowAtIndexPath(indexPath: NSIndexPath) -> FormTableViewCell? {
-        let section = visibleFormSections?[indexPath.section]
-        let formCell = section?[indexPath.row]
+    public func cellForRowAtIndexPath(indexPath: NSIndexPath) -> FormTableViewCell {
+        let section = visibleFormSections[indexPath.section]
+        let formCell = section[indexPath.row]
         return formCell
     }
     
     // MARK: UITableViewDelegate
     
-    public func heightForRowAtIndexPath(indexPath: NSIndexPath) -> CGFloat? {
-        if let formCell = cellForRowAtIndexPath(indexPath) {
-            return formCell.rowHeight() ?? 44.0
-        }
-        return nil
+    public func heightForRowAtIndexPath(indexPath: NSIndexPath) -> CGFloat {
+        let formCell = cellForRowAtIndexPath(indexPath)
+        return formCell.rowHeight() ?? 44.0
     }
 }

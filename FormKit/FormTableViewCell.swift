@@ -13,28 +13,20 @@ import PureLayout
 // TODO: Clean up FormTableViewCellProtocol to keep only vars and funcs that are required due to dependencies
 
 @objc public protocol FormTableViewCellDelegate {
-    optional func formCell(sender: FormTableViewCell, identifier: String, didBecomeFirstResponder firstResponder: UIView?)
-    
-    optional func formCell(sender: FormTableViewCell, identifier: String, didResignFirstResponder firstResponder: UIView?)
-    
-    optional func formCell(sender: FormTableViewCell, identifier: String, didChangeValue value: AnyObject?)
-    
-    optional func formCell(sender: FormTableViewCell, identifier: String, didChangeRowHeightFrom from: CGFloat, to: CGFloat)
-    
-    optional func formCell(sender: FormTableViewCell, identifier: String, didChangeRowVisibilityAtIndexPath from: NSIndexPath?, to: NSIndexPath?)
-
-    optional func formCellDidRequestNextFormTableViewCell(sender: FormTableViewCell, identifier: String)
-    
-    optional func formCell(sender: FormTableViewCell, identifier: String, shouldValidateWithIdentifier validationIdentifier: String) -> Bool
-    
-    optional func formCell(sender: FormTableViewCell, identifier: String, didTouchUpInsideButton button: UIButton)
-    
+    optional func formCell(sender: FormTableViewCell, didBecomeFirstResponder firstResponder: UIView?)
+    optional func formCell(sender: FormTableViewCell, didResignFirstResponder firstResponder: UIView?)
+    optional func formCell(sender: FormTableViewCell, didChangeValue value: AnyObject?)
+    optional func formCell(sender: FormTableViewCell, didChangeRowHeightFrom from: CGFloat, to: CGFloat)
+    optional func formCell(sender: FormTableViewCell, didChangeRowVisibilityAtIndexPath from: NSIndexPath?, to: NSIndexPath?)
+    optional func formCellDidRequestNextFormTableViewCell(sender: FormTableViewCell)
+    optional func formCell(sender: FormTableViewCell, didTouchUpInsideButton button: UIButton)
     optional func formCellShouldResignFirstResponder(sender: FormTableViewCell) -> Bool
+    optional func formCell(sender: FormTableViewCell, shouldValidateWithIdentifier validationIdentifier: String?) -> Bool
 }
 
 public struct FormCellConfiguration {
     
-    public typealias ConfigClosure = (cell: FormTableViewCell, value: AnyObject?, identifier: String, label: UILabel, valueView: UIView) -> Void
+    public typealias ConfigClosure = (cell: FormTableViewCell, value: AnyObject?, label: UILabel, valueView: UIView) -> Void
     
     public let config: ConfigClosure
     
@@ -47,7 +39,7 @@ public struct FormCellConfiguration {
     // MARK: - Methods
     
     public static func defaultConfiguration() -> FormCellConfiguration {
-        return FormCellConfiguration(config: { (cell, value, identifier, label, valueView) -> Void in
+        return FormCellConfiguration(config: { (cell, value, label, valueView) -> Void in
 
             // Label - Error state
             cell.label.textColor = (cell.errorState) ? cell.errorLabelTextColor : cell.defaultLabelTextColor
@@ -65,7 +57,7 @@ public struct FormCellConfiguration {
     }
     
     public static func emailConfiguration() -> FormCellConfiguration {
-        return FormCellConfiguration(config: { (cell, value, identifier, label, valueView) -> Void in
+        return FormCellConfiguration(config: { (cell, value, label, valueView) -> Void in
             if let textField = valueView as? UITextField {
                 textField.keyboardType = .EmailAddress
                 textField.autocorrectionType = .No
@@ -75,7 +67,7 @@ public struct FormCellConfiguration {
     }
 
     public static func passwordConfiguration() -> FormCellConfiguration {
-        return FormCellConfiguration(config: { (cell, value, identifier, label, valueView) -> Void in
+        return FormCellConfiguration(config: { (cell, value, label, valueView) -> Void in
             if let textField = valueView as? UITextField {
                 textField.secureTextEntry = true
                 textField.autocorrectionType = .No
@@ -91,11 +83,11 @@ public struct FormCellValidation {
     
     public let closure: ValidationClosure
     public let errorMessage: String
-    public let identifier: String
+    public let identifier: String?
     
     // MARK: - Initializers
     
-    public init(closure: ValidationClosure, errorMessage: String, identifier: String) {
+    public init(closure: ValidationClosure, errorMessage: String, identifier: String? = nil) {
         self.closure = closure
         self.errorMessage = errorMessage
         self.identifier = identifier
@@ -132,13 +124,17 @@ public struct FormCellDataSource {
     public typealias WriteObjectValueClosure = (value: AnyObject?) -> Void
 
     let setFormCellValue: SetFormCellValueClosure
-    let getFormCellValue: GetFormCellValueClosure
-    let didChangeFormCellValue: DidChangeFormCellValueClosure
-    let writeObjectValue: WriteObjectValueClosure
+    let getFormCellValue: GetFormCellValueClosure?
+    let didChangeFormCellValue: DidChangeFormCellValueClosure?
+    let writeObjectValue: WriteObjectValueClosure?
     
     // MARK: - Initializers
     
-    public init(setFormCellValue: SetFormCellValueClosure, getFormCellValue: GetFormCellValueClosure, didChangeFormCellValue: DidChangeFormCellValueClosure, writeObjectValue: WriteObjectValueClosure) {
+    public init(setFormCellValue: SetFormCellValueClosure,
+                getFormCellValue: GetFormCellValueClosure? = nil,
+                didChangeFormCellValue: DidChangeFormCellValueClosure? = nil,
+                writeObjectValue: WriteObjectValueClosure? = nil) {
+        
         self.setFormCellValue = setFormCellValue
         self.getFormCellValue = getFormCellValue
         self.didChangeFormCellValue = didChangeFormCellValue
@@ -154,9 +150,9 @@ public class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
         didSet {
             updateUI()
             
-            valueDataSource?.didChangeFormCellValue(value: value)
+            valueDataSource?.didChangeFormCellValue?(value: value)
             
-            delegate?.formCell?(self, identifier: identifier, didChangeValue: value)
+            delegate?.formCell?(self, didChangeValue: value)
         
             cachedRowSize = CGSizeMake(CGRectGetWidth(bounds), self.rowHeight())
             
@@ -168,12 +164,12 @@ public class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
     var cachedRowSize: CGSize = CGSizeZero {
         didSet {
             if oldValue.height != 0 && oldValue.height != cachedRowSize.height { // oldValue.width != cachedRowSize.width ||
-                delegate?.formCell?(self, identifier: identifier, didChangeRowHeightFrom: oldValue.height, to: cachedRowSize.height)
+                delegate?.formCell?(self, didChangeRowHeightFrom: oldValue.height, to: cachedRowSize.height)
             }
         }
     }
     
-    public var identifier: String!
+    public var identifier: String?
     
     public var visible: Bool = true {
         willSet {
@@ -193,7 +189,7 @@ public class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
                     toIndexPath = formManager.indexPathForCell(self)
                 }
                 
-                delegate?.formCell?(self, identifier: identifier, didChangeRowVisibilityAtIndexPath: fromIndexPath, to: toIndexPath)
+                delegate?.formCell?(self, didChangeRowVisibilityAtIndexPath: fromIndexPath, to: toIndexPath)
             }
         }
     }
@@ -381,12 +377,12 @@ public class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
 
     // MARK: - Initializers
     
-    required public init(identifier: String, delegate: FormTableViewCellDelegate!) {
+    required public init(labelText: String?, identifier: String? = nil, configurations: [FormCellConfiguration]? = nil, delegate: FormTableViewCellDelegate?) {
         self.identifier = identifier
         self.delegate = delegate
-        
+
         super.init(style: .Default, reuseIdentifier: identifier)
-        
+
         contentView.addSubview(bottomSeparatorView)
         contentView.addSubview(label)
         contentView.addSubview(valueTextView)
@@ -404,6 +400,14 @@ public class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
         contentView.addConstraints([labelTopConstraint, labelLeftConstraint, labelBottomConstraint, labelRightConstraint])
         contentView.addConstraints([valueTextViewTopConstraint, valueTextViewLeftConstraint, valueTextViewBottomConstraint, valueTextViewRightConstraint])
         contentView.addConstraints([bottomSeparatorViewLeftConstraint, bottomSeparatorViewRightConstraint, bottomSeparatorViewHeightConstraint])
+        
+        // Label Text
+        self.label.text = labelText
+        
+        // Configurations
+        if let configurations = configurations {
+            self.addConfigurations(configurations)
+        }
     }
     
     required public init?(coder aDecoder: NSCoder) {
@@ -479,7 +483,7 @@ public class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
     
     public func config() {
         for configuration in configurations {
-            configuration.config(cell: self, value: self.value, identifier: self.identifier, label: self.label, valueView: self.valueView())
+            configuration.config(cell: self, value: self.value, label: self.label, valueView: self.valueView())
             setNeedsUpdateConstraints()
         }
     }
@@ -530,7 +534,7 @@ public class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
             valueViewHeight = text.boundingRectHeightWithMaxWidth(maxWidth, font: valueTextView.font!) + 1
         }
         
-        let rowHeight = min(max(valueViewHeight + valueViewInsets.top + valueViewInsets.bottom, minRowHeight), maxRowHeight)
+        let rowHeight = min(max(valueViewHeight + valueViewInsets.top + valueViewInsets.bottom, minRowHeight), max(minRowHeight, maxRowHeight))
         
         return rowHeight
     }
@@ -546,14 +550,14 @@ public class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
     
     public func getValue() -> AnyObject? {
         if let valueDataSource = valueDataSource {
-            return valueDataSource.getFormCellValue(value: self.value)
+            return valueDataSource.getFormCellValue?(value: self.value)
         }
         
         return value
     }
     
     public func writeObjectValue() {
-        valueDataSource?.writeObjectValue(value: self.value)
+        valueDataSource?.writeObjectValue?(value: self.value)
     }
     
     // MARK: Actions
@@ -614,12 +618,12 @@ public class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
         validations.append(validation)
     }
     
-    public func addValidation(validation: FormCellValidation.ValidationClosure, errorMessage: String, identifier: String) {
+    public func addValidation(validation: FormCellValidation.ValidationClosure, errorMessage: String, identifier: String? = nil) {
         let validation = FormCellValidation(closure: validation, errorMessage: errorMessage, identifier: identifier)
         validations.append(validation)
     }
     
-    public func addValidationForTypeEmailWithIdentifier(identifier: String) {
+    public func addValidationForTypeEmail(identifier: String? = nil) {
         addValidation({ (value) -> Bool in
             if let stringValue = value as? String {
                 return stringValue.isValidEmail()
@@ -628,13 +632,13 @@ public class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
             }, errorMessage: "Invalid email address", identifier: identifier)
     }
     
-    public func addValidationForNotNilValueWithIdentifier(identifier: String) {
+    public func addValidationForNotNilValue(identifier: String? = nil) {
         addValidation({ (value) -> Bool in
             return value != nil
             }, errorMessage: "Value must be not nil", identifier: identifier)
     }
     
-    public func addValidationForTypeStringWithMinLength(length: Int, identifier: String) {
+    public func addValidationForTypeStringWithMinLength(length: Int, identifier: String? = nil) {
         let characterString = (length > 1) ? "characters" : "character"
         addValidation({ (value) -> Bool in
             if let stringValue = value as? String {
@@ -644,7 +648,7 @@ public class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
             }, errorMessage: "Must be at least \(length) \(characterString)", identifier: identifier)
     }
     
-    public func addValidationForTypeStringWithMaxLength(length: Int, identifier: String) {
+    public func addValidationForTypeStringWithMaxLength(length: Int, identifier: String? = nil) {
         let characterString = (length > 1) ? "characters" : "character"
         addValidation({ (value) -> Bool in
             if let stringValue = value as? String {
@@ -654,7 +658,7 @@ public class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
             }, errorMessage: "Must be at most \(length) \(characterString)", identifier: identifier)
     }
     
-    public func addValidationForTypeNumericWithMinNumber(number: Double, identifier: String) {
+    public func addValidationForTypeNumericWithMinNumber(number: Double, identifier: String? = nil) {
         addValidation({ (value) -> Bool in
             if let doubleValue = value?.doubleValue {
                 return doubleValue >= number
@@ -675,7 +679,7 @@ public class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
     func validateValue() -> Array<FormCellValidation>? {
         var failedValidations = Array<FormCellValidation>()
         for validation in validations {
-            let shouldValidate = delegate?.formCell?(self, identifier: identifier, shouldValidateWithIdentifier: validation.identifier) ?? true
+            let shouldValidate = delegate?.formCell?(self, shouldValidateWithIdentifier: validation.identifier) ?? true
             if shouldValidate {
                 if validation.closure(value: value) == false {
                     failedValidations.append(validation)
@@ -705,20 +709,20 @@ public class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
 
 // MARK: - Extension
 
-extension String {
+public extension String {
     
-    func isValidEmail() -> Bool {
+    public func isValidEmail() -> Bool {
         let regularExpression = try? NSRegularExpression(pattern: "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}", options: [])
         let numberOfMatches = regularExpression?.numberOfMatchesInString(self, options: [], range: NSMakeRange(0, self.characters.count))
         return numberOfMatches > 0
     }
     
-    func boundingRectHeightWithMaxWidth(maxWidth: CGFloat, font: UIFont) -> CGFloat {
+    private func boundingRectHeightWithMaxWidth(maxWidth: CGFloat, font: UIFont) -> CGFloat {
         let attributes: [String : AnyObject] = [NSFontAttributeName: font]
         return boundingRectHeightWithMaxWidth(maxWidth, attributes: attributes)
     }
     
-    func boundingRectHeightWithMaxWidth(maxWidth: CGFloat, attributes: [String : AnyObject]) -> CGFloat {
+    private func boundingRectHeightWithMaxWidth(maxWidth: CGFloat, attributes: [String : AnyObject]) -> CGFloat {
         let maxSize = CGSizeMake(maxWidth, CGFloat.max)
         let rect = NSString(string: self).boundingRectWithSize(maxSize, options: .UsesLineFragmentOrigin, attributes: attributes, context: nil)
         return CGRectGetHeight(rect)

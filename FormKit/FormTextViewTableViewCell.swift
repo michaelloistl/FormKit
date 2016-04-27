@@ -11,7 +11,7 @@ import UIKit
 
 public class FormTextViewTableViewCell: FormTextInputTableViewCell, NSLayoutManagerDelegate, UITextViewDelegate {
     
-    var allowLineBreak = true
+    public var allowLineBreak = true
     
     var textViewWidth: CGFloat {
         return CGRectGetWidth(contentView.bounds) - valueViewInsets.left - valueViewInsets.right
@@ -62,8 +62,8 @@ public class FormTextViewTableViewCell: FormTextInputTableViewCell, NSLayoutMana
     
     // MARK: Initializers
     
-    required public init(identifier: String, delegate: FormTableViewCellDelegate!) {
-        super.init(identifier: identifier, delegate: delegate)
+    required public init(labelText: String?, identifier: String? = nil, configurations: [FormCellConfiguration]? = nil, delegate: FormTableViewCellDelegate?) {
+        super.init(labelText: labelText, identifier: identifier, configurations: configurations, delegate: delegate)
         
         maxRowHeight = 88.0
         
@@ -141,11 +141,11 @@ public class FormTextViewTableViewCell: FormTextInputTableViewCell, NSLayoutMana
     
     public func textViewDidBeginEditing(textView: UITextView) {
         errorState = false
-        delegate?.formCell?(self, identifier: identifier, didBecomeFirstResponder: textView)
+        delegate?.formCell?(self, didBecomeFirstResponder: textView)
     }
     
     public func textViewDidEndEditing(textView: UITextView) {
-        delegate?.formCell?(self, identifier: identifier, didResignFirstResponder: textView)
+        delegate?.formCell?(self, didResignFirstResponder: textView)
     }
     
     // MARK: ScrollViewDelegate

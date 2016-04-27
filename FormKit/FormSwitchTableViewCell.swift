@@ -13,7 +13,7 @@ public class FormSwitchTableViewCell: FormTableViewCell {
     
     public lazy var switchView: UISwitch = {
         let _switchView = UISwitch(forAutoLayout: ())
-        _switchView.addTarget(self, action: Selector("switchDidChangeValue:"), forControlEvents: .ValueChanged)
+        _switchView.addTarget(self, action: #selector(FormSwitchTableViewCell.switchDidChangeValue(_:)), forControlEvents: .ValueChanged)
         
         return _switchView
     }()
@@ -26,9 +26,9 @@ public class FormSwitchTableViewCell: FormTableViewCell {
     
     // MARK: Initializers
     
-    required public init(identifier: String, delegate: FormTableViewCellDelegate!) {
-        super.init(identifier: identifier, delegate: delegate)
-        
+    required public init(labelText: String?, identifier: String? = nil, configurations: [FormCellConfiguration]? = nil, delegate: FormTableViewCellDelegate?) {
+        super.init(labelText: labelText, identifier: identifier, configurations: configurations, delegate: delegate)
+       
         selectionStyle = .None
         
         contentView.addSubview(switchView)
