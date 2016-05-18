@@ -94,19 +94,21 @@ public class FormTextInputTableViewCell: FormTableViewCell {
         characterLabelBottomConstraint.constant = -characterLabelInsets.bottom
         characterLabelRightConstraint.constant = -characterLabelInsets.right
         
-        switch characterLabelAlignment {
-        case .TopLeft:
-            NSLayoutConstraint.activateConstraints([characterLabelTopConstraint, characterLabelLeftConstraint])
-            NSLayoutConstraint.deactivateConstraints([characterLabelBottomConstraint, characterLabelRightConstraint])
-        case .TopRight:
-            NSLayoutConstraint.activateConstraints([characterLabelTopConstraint, characterLabelRightConstraint])
-            NSLayoutConstraint.deactivateConstraints([characterLabelLeftConstraint, characterLabelBottomConstraint])
-        case .BottomLeft:
-            NSLayoutConstraint.activateConstraints([characterLabelBottomConstraint, characterLabelLeftConstraint])
-            NSLayoutConstraint.deactivateConstraints([characterLabelTopConstraint, characterLabelRightConstraint])
-        case .BottomRight:
-            NSLayoutConstraint.activateConstraints([characterLabelBottomConstraint, characterLabelRightConstraint])
-            NSLayoutConstraint.deactivateConstraints([characterLabelTopConstraint, characterLabelLeftConstraint])
+        if !characterLabel.hidden {
+            switch characterLabelAlignment {
+            case .TopLeft:
+                NSLayoutConstraint.activateConstraints([characterLabelTopConstraint, characterLabelLeftConstraint])
+                NSLayoutConstraint.deactivateConstraints([characterLabelBottomConstraint, characterLabelRightConstraint])
+            case .TopRight:
+                NSLayoutConstraint.activateConstraints([characterLabelTopConstraint, characterLabelRightConstraint])
+                NSLayoutConstraint.deactivateConstraints([characterLabelLeftConstraint, characterLabelBottomConstraint])
+            case .BottomLeft:
+                NSLayoutConstraint.activateConstraints([characterLabelBottomConstraint, characterLabelLeftConstraint])
+                NSLayoutConstraint.deactivateConstraints([characterLabelTopConstraint, characterLabelRightConstraint])
+            case .BottomRight:
+                NSLayoutConstraint.activateConstraints([characterLabelBottomConstraint, characterLabelRightConstraint])
+                NSLayoutConstraint.deactivateConstraints([characterLabelTopConstraint, characterLabelLeftConstraint])
+            }
         }
         
         super.updateConstraints()
