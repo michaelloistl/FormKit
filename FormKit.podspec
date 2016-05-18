@@ -4,7 +4,8 @@ Pod::Spec.new do |s|
     s.license = 'MIT'
     s.summary = 'Forms in Swift'
     s.authors = { 'Michael Loistl' => 'michael@aplo.co' }
-    s.source = { :git => 'https://bitbucket.org/aplo/formkit.git', :tag => s.version }
+    s.homepage = "https://github.com/michaelloistl/FormKit"
+    s.source = { :git => 'https://github.com/michaelloistl/FormKit.git', :tag => s.version }
 
     s.ios.deployment_target = '8.0'
     s.osx.deployment_target = '10.9'
