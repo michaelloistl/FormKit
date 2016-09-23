@@ -10,36 +10,36 @@ import Foundation
 import UIKit
 
 public protocol FormTextViewDataSource {
-    func formTextViewMinHeight(sender: FormTextView) -> CGFloat
-    func formTextViewMaxHeight(sender: FormTextView) -> CGFloat
+    func formTextViewMinHeight(_ sender: FormTextView) -> CGFloat
+    func formTextViewMaxHeight(_ sender: FormTextView) -> CGFloat
     
-    func formTextViewShouldResignFirstResponder(sender: FormTextView) -> Bool
+    func formTextViewShouldResignFirstResponder(_ sender: FormTextView) -> Bool
 }
 
-public class FormTextView: UITextView {
+open class FormTextView: UITextView {
     
-    public var dataSource: FormTextViewDataSource?
+    open var dataSource: FormTextViewDataSource?
     
-    public var placeholder: String? {
+    open var placeholder: String? {
         didSet {
             placeHolderLabel.text = placeholder
             layoutSubviews()
         }
     }
     
-    override public var font: UIFont? {
+    override open var font: UIFont? {
         didSet {
             placeHolderLabel.font = font
         }
     }
     
-    override public var textAlignment: NSTextAlignment {
+    override open var textAlignment: NSTextAlignment {
         didSet {
             placeHolderLabel.textAlignment = textAlignment
         }
     }
     
-    public lazy var placeHolderLabel: UILabel = {
+    open lazy var placeHolderLabel: UILabel = {
         let _placeHolderLabel = UILabel()
         _placeHolderLabel.font = self.font
         _placeHolderLabel.textAlignment = self.textAlignment
@@ -58,11 +58,11 @@ public class FormTextView: UITextView {
         addSubview(placeHolderLabel)
         
         textContainer?.lineFragmentPadding = 0
-        textContainerInset = UIEdgeInsetsZero
+        textContainerInset = UIEdgeInsets.zero
         
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(handleTextViewTextDidChangeNotification(_:)), name: UITextViewTextDidChangeNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(handleTextViewTextDidChangeNotification(_:)), name: NSNotification.Name.UITextViewTextDidChange, object: nil)
         
-        placeHolderLabel.autoPinEdgesToSuperviewEdgesWithInsets(UIEdgeInsetsZero, excludingEdge: .Bottom)
+        placeHolderLabel.autoPinEdgesToSuperviewEdges(with: UIEdgeInsets.zero, excludingEdge: .bottom)
     }
     
     required public init?(coder aDecoder: NSCoder) {
@@ -70,14 +70,14 @@ public class FormTextView: UITextView {
     }
     
     deinit {
-        NSNotificationCenter.defaultCenter().removeObserver(self)
+        NotificationCenter.default.removeObserver(self)
     }
     
     // MARK: - Super
     
-    public override func intrinsicContentSize() -> CGSize {
-        let width = super.intrinsicContentSize().width
-        var height = sizeThatFits(CGSizeMake(width, CGFloat.max)).height
+    open override var intrinsicContentSize : CGSize {
+        let width = super.intrinsicContentSize.width
+        var height = sizeThatFits(CGSize(width: width, height: CGFloat.greatestFiniteMagnitude)).height
         
         if let minHeight = dataSource?.formTextViewMinHeight(self) {
             height = max(height, minHeight)
@@ -87,10 +87,10 @@ public class FormTextView: UITextView {
             height = min(height, maxHeight)
         }
         
-        return CGSizeMake(width, height)
+        return CGSize(width: width, height: height)
     }
     
-    public override func resignFirstResponder() -> Bool {
+    open override func resignFirstResponder() -> Bool {
         if dataSource?.formTextViewShouldResignFirstResponder(self) == false {
             return false
         }
@@ -100,11 +100,11 @@ public class FormTextView: UITextView {
     
     // MARK: Notification Handler Functions
     
-    func handleTextViewTextDidChangeNotification(sender: NSNotification) {
+    func handleTextViewTextDidChangeNotification(_ sender: Notification) {
         if let text = text {
-            placeHolderLabel.hidden = text.characters.count > 0
+            placeHolderLabel.isHidden = text.characters.count > 0
         } else {
-            placeHolderLabel.hidden = false
+            placeHolderLabel.isHidden = false
         }
     }
 }

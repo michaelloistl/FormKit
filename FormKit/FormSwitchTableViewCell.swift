@@ -9,17 +9,17 @@
 import Foundation
 import UIKit
 
-public class FormSwitchTableViewCell: FormTableViewCell {
+open class FormSwitchTableViewCell: FormTableViewCell {
     
-    public lazy var switchView: UISwitch = {
+    open lazy var switchView: UISwitch = {
         let _switchView = UISwitch(forAutoLayout: ())
-        _switchView.addTarget(self, action: #selector(switchDidChangeValue(_:)), forControlEvents: .ValueChanged)
+        _switchView.addTarget(self, action: #selector(switchDidChangeValue(_:)), for: .valueChanged)
         
         return _switchView
     }()
     
     lazy var switchViewRightConstraint: NSLayoutConstraint = {
-        let _constraint = NSLayoutConstraint(item: self.switchView, attribute: .Right, relatedBy: .Equal, toItem: self.contentView, attribute: .Right, multiplier: 1.0, constant: 0.0)
+        let _constraint = NSLayoutConstraint(item: self.switchView, attribute: .right, relatedBy: .equal, toItem: self.contentView, attribute: .right, multiplier: 1.0, constant: 0.0)
         
         return _constraint
     }()
@@ -29,12 +29,12 @@ public class FormSwitchTableViewCell: FormTableViewCell {
     required public init(labelText: String?, identifier: String? = nil, configurations: [FormCellConfiguration]? = nil, delegate: FormTableViewCellDelegate?) {
         super.init(labelText: labelText, identifier: identifier, configurations: configurations, delegate: delegate)
        
-        selectionStyle = .None
+        selectionStyle = .none
         
         contentView.addSubview(switchView)
         
         contentView.addConstraint(switchViewRightConstraint)
-        switchView.autoAlignAxis(.Horizontal, toSameAxisOfView: label)
+        switchView.autoAlignAxis(.horizontal, toSameAxisOf: label)
     }
     
     required public init?(coder aDecoder: NSCoder) {
@@ -43,7 +43,7 @@ public class FormSwitchTableViewCell: FormTableViewCell {
     
     // MARK: - Super
     
-    public override func updateConstraints() {
+    open override func updateConstraints() {
         
         switchViewRightConstraint.constant = -valueViewInsets.right
         
@@ -52,23 +52,23 @@ public class FormSwitchTableViewCell: FormTableViewCell {
     
     // MARK: Methods
 
-    override public func valueView() -> UIView {
+    override open func valueView() -> UIView {
         return switchView
     }
     
     // MARK: Actions
     
-    func switchDidChangeValue(sender: UISwitch) {
-        value = sender.on
+    func switchDidChangeValue(_ sender: UISwitch) {
+        value = sender.isOn as AnyObject?
     }
     
     // MARK: FormTableViewCellProtocol
     
-    override public func updateUI() {
-        switchView.on = value as? Bool ?? false
+    override open func updateUI() {
+        switchView.isOn = value as? Bool ?? false
     }
     
-    override public func isEmpty() -> Bool {
+    override open func isEmpty() -> Bool {
         return false
     }
 }

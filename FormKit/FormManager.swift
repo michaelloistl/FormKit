@@ -10,17 +10,17 @@ import Foundation
 import UIKit
 
 public protocol FormManagerDelegate {
-    func formManagerDidSetFormSections(sender: FormManager)
-    func formManagerShouldReloadForm(sender: FormManager)
+    func formManagerDidSetFormSections(_ sender: FormManager)
+    func formManagerShouldReloadForm(_ sender: FormManager)
 }
 
-public class FormManager: NSObject {
+open class FormManager: NSObject {
     
-    public var delegate: FormManagerDelegate?
+    open var delegate: FormManagerDelegate?
     
-    public var formSectionTitles: [String]?
+    open var formSectionTitles: [String]?
     
-    public var formSections: [[FormTableViewCell]]? {
+    open var formSections: [[FormTableViewCell]]? {
         didSet {
             setupAllFormCells()
             
@@ -32,13 +32,13 @@ public class FormManager: NSObject {
         }
     }
     
-    public var visibleFormSections = [[FormTableViewCell]]()
+    open var visibleFormSections = [[FormTableViewCell]]()
     
-    public var shouldResignFirstResponder = true
+    open var shouldResignFirstResponder = true
     
-    public var shouldReloadAfterTransaction: Bool = false
+    open var shouldReloadAfterTransaction: Bool = false
     
-    public var reloadTransaction: Bool = false {
+    open var reloadTransaction: Bool = false {
         didSet {
             if reloadTransaction {
                 shouldReloadAfterTransaction = false
@@ -51,11 +51,11 @@ public class FormManager: NSObject {
         }
     }
     
-    public var firstResponderCell: FormTableViewCell? {
+    open var firstResponderCell: FormTableViewCell? {
         var firstResponderCell: FormTableViewCell?
         
         for cell in allFormCells() {
-            if cell.isFirstResponder() {
+            if cell.isFirstResponder {
                 firstResponderCell = cell
                 break
             }
@@ -68,15 +68,15 @@ public class FormManager: NSObject {
     
     // MARK: - Methods
     
-    private func beginReloadTransaction() {
+    fileprivate func beginReloadTransaction() {
         reloadTransaction = true
     }
     
-    private func endReloadTransaction() {
+    fileprivate func endReloadTransaction() {
         reloadTransaction = false
     }
     
-    public func allFormCells() -> [FormTableViewCell] {
+    open func allFormCells() -> [FormTableViewCell] {
         var allFormCells = [FormTableViewCell]()
         if let formSections = formSections {
             for section in formSections {
@@ -86,7 +86,7 @@ public class FormManager: NSObject {
         return allFormCells
     }
     
-    public func allVisibleFormCells() -> [FormTableViewCell] {
+    open func allVisibleFormCells() -> [FormTableViewCell] {
         var allVisibleFormCells = [FormTableViewCell]()
         for section in visibleFormSections {
             allVisibleFormCells += section
@@ -94,26 +94,26 @@ public class FormManager: NSObject {
         return allVisibleFormCells
     }
     
-    public func indexPathForCell(cell: FormTableViewCell) -> NSIndexPath? {
-        for (index, section) in visibleFormSections.enumerate() {
-            if let row = section.indexOf(cell) {
-                return NSIndexPath(forRow: row, inSection: index)
+    open func indexPathForCell(_ cell: FormTableViewCell) -> IndexPath? {
+        for (index, section) in visibleFormSections.enumerated() {
+            if let row = section.index(of: cell) {
+                return IndexPath(row: row, section: index)
             }
         }
         return nil
     }
     
-    public func section(section: Int) -> AnyObject? {
-        return visibleFormSections[section]
+    open func section(_ section: Int) -> AnyObject? {
+        return visibleFormSections[section] as AnyObject?
     }
     
-    public func setupAllFormCells() {
+    open func setupAllFormCells() {
         for formCell in allFormCells() {
             formCell.formManager = self
         }
     }
     
-    public func setAllFormCellValues() {
+    open func setAllFormCellValues() {
         beginReloadTransaction()
         
         for formCell in allVisibleFormCells() {
@@ -123,19 +123,19 @@ public class FormManager: NSObject {
         endReloadTransaction()
     }
     
-    public func writeAllFormCellValues() {
+    open func writeAllFormCellValues() {
         for formCell in allFormCells() {
             formCell.writeObjectValue()
         }
     }
     
-    public func writeAllVisibleFormCellValues() {
+    open func writeAllVisibleFormCellValues() {
         for formCell in allVisibleFormCells() {
             formCell.writeObjectValue()
         }
     }
     
-    public func updateVisibleFormSections() {
+    open func updateVisibleFormSections() {
         var visibleFormSections = [[FormTableViewCell]]()
         if let formSections = formSections {
             for section in formSections {
@@ -151,7 +151,7 @@ public class FormManager: NSObject {
         self.visibleFormSections = visibleFormSections
     }
     
-    public func formIsValid(showErrorState: Bool = true) -> Bool {
+    open func formIsValid(_ showErrorState: Bool = true) -> Bool {
         var isValid = true
         for formCell in allVisibleFormCells() {
             if formCell.isValid(showErrorState) == false {
@@ -161,7 +161,7 @@ public class FormManager: NSObject {
         return isValid
     }
     
-    public func formCellWithIdentifier(identifier: String) -> FormTableViewCell? {
+    open func formCellWithIdentifier(_ identifier: String) -> FormTableViewCell? {
         for cell in allVisibleFormCells() {
             if cell.identifier == identifier {
                 return cell
@@ -170,23 +170,23 @@ public class FormManager: NSObject {
         return nil
     }
     
-    public func formResignFirstResponder() {
+    open func formResignFirstResponder() {
         for cell in allVisibleFormCells() {
             cell.resignFirstResponder()
         }
     }
     
-    public func setErrorState(errorState: Bool) {
+    open func setErrorState(_ errorState: Bool) {
         for formCell in allVisibleFormCells() {
             formCell.errorState = errorState
         }
     }
     
-    public func nextFormTableViewCell() -> FormTableViewCell? {
+    open func nextFormTableViewCell() -> FormTableViewCell? {
         let allFormCells = self.allVisibleFormCells()
         var firstResponderCell: FormTableViewCell?
         for cell in allFormCells {
-            if cell.isFirstResponder() {
+            if cell.isFirstResponder {
                 firstResponderCell = cell
                 break
             }
@@ -194,7 +194,7 @@ public class FormManager: NSObject {
         
         if let firstResponderCell = firstResponderCell {
             if allFormCells.count > 1 {
-                if let index = allFormCells.indexOf(firstResponderCell) {
+                if let index = allFormCells.index(of: firstResponderCell) {
                     var canBeFirstResponder = false
                     
                     var nextIndex = index
@@ -223,23 +223,23 @@ public class FormManager: NSObject {
     
     // MARK: UITableViewDataSource
     
-    public func numberOfSections() -> Int {
+    open func numberOfSections() -> Int {
         return visibleFormSections.count
     }
     
-    public func numberOfRowsInSection(section: Int) -> Int {
+    open func numberOfRowsInSection(_ section: Int) -> Int {
         return visibleFormSections[section].count
     }
     
-    public func cellForRowAtIndexPath(indexPath: NSIndexPath) -> FormTableViewCell {
-        let section = visibleFormSections[indexPath.section]
-        let formCell = section[indexPath.row]
+    open func cellForRowAtIndexPath(_ indexPath: IndexPath) -> FormTableViewCell {
+        let section = visibleFormSections[(indexPath as NSIndexPath).section]
+        let formCell = section[(indexPath as NSIndexPath).row]
         return formCell
     }
     
     // MARK: UITableViewDelegate
     
-    public func heightForRowAtIndexPath(indexPath: NSIndexPath) -> CGFloat {
+    open func heightForRowAtIndexPath(_ indexPath: IndexPath) -> CGFloat {
         let formCell = cellForRowAtIndexPath(indexPath)
         return formCell.rowHeight() ?? 44.0
     }

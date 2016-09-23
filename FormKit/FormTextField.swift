@@ -10,16 +10,16 @@ import Foundation
 import UIKit
 
 public protocol FormTextFieldDataSource {
-    func formTextFieldShouldResignFirstResponder(sender: FormTextField) -> Bool
+    func formTextFieldShouldResignFirstResponder(_ sender: FormTextField) -> Bool
 }
 
-public class FormTextField: UITextField {
+open class FormTextField: UITextField {
     
-    public var dataSource: FormTextFieldDataSource?
+    open var dataSource: FormTextFieldDataSource?
     
     // MARK: - Super
     
-    public override func resignFirstResponder() -> Bool {
+    open override func resignFirstResponder() -> Bool {
         if dataSource?.formTextFieldShouldResignFirstResponder(self) == false {
             return false
         }

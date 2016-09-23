@@ -10,9 +10,9 @@ import Foundation
 
 // MARK: - ValueTransformers
 
-public class FormValueTransformer: NSValueTransformer {
+open class FormValueTransformer: ValueTransformer {
     
-    public typealias closureAlias = (value: AnyObject?) -> AnyObject?
+    public typealias closureAlias = (_ value: AnyObject?) -> AnyObject?
     
     var forwardClosure: (closureAlias)?
     var reverseClosure: (closureAlias)?
@@ -23,7 +23,7 @@ public class FormValueTransformer: NSValueTransformer {
         super.init()
     }
     
-    public convenience init(forwardClosure: ((value: AnyObject?) -> AnyObject?)?, reverseClosure: ((value: AnyObject?) -> AnyObject?)?) {
+    public convenience init(forwardClosure: ((_ value: AnyObject?) -> AnyObject?)?, reverseClosure: ((_ value: AnyObject?) -> AnyObject?)?) {
         self.init()
         
         self.forwardClosure = forwardClosure
@@ -34,50 +34,50 @@ public class FormValueTransformer: NSValueTransformer {
     
     // Returns a transformer which transforms values using the given closure.
     // Reverse transformations will not be allowed.
-    public class func transformerWithClosure(closure: closureAlias) -> NSValueTransformer! {
+    open class func transformerWithClosure(_ closure: @escaping closureAlias) -> ValueTransformer! {
         return FormValueTransformer(forwardClosure: closure, reverseClosure: nil)
     }
     
     // Returns a transformer which transforms values using the given closure, for
     // forward or reverse transformations.
-    public class func reversibleTransformerWithClosure(closure: closureAlias) -> NSValueTransformer! {
+    open class func reversibleTransformerWithClosure(_ closure: @escaping closureAlias) -> ValueTransformer! {
         return reversibleTransformerWithForwardClosure(closure, reverseClosure: closure)
     }
     
     // Returns a transformer which transforms values using the given closures.
-    public class func reversibleTransformerWithForwardClosure(forwardClosure: closureAlias, reverseClosure: closureAlias) -> NSValueTransformer! {
+    open class func reversibleTransformerWithForwardClosure(_ forwardClosure: @escaping closureAlias, reverseClosure: @escaping closureAlias) -> ValueTransformer! {
         return FormReversibleValueTransformer(forwardClosure: forwardClosure, reverseClosure: reverseClosure)
     }
     
     // MARK: ValueTransformer
     
-    public override class func allowsReverseTransformation() -> Bool {
+    open override class func allowsReverseTransformation() -> Bool {
         return false
     }
     
-    public override class func transformedValueClass() -> AnyClass {
+    open override class func transformedValueClass() -> AnyClass {
         return NSObject.self
     }
     
-    public override func transformedValue(value: AnyObject?) -> AnyObject? {
+    open override func transformedValue(_ value: Any?) -> Any? {
         if let forwardClosure = forwardClosure {
-            return forwardClosure(value: value)
+            return forwardClosure(value as AnyObject?)
         }
         return nil
     }
 }
 
-public class FormReversibleValueTransformer: FormValueTransformer {
+open class FormReversibleValueTransformer: FormValueTransformer {
     
     // MARK: ValueTransformer
     
-    public override class func allowsReverseTransformation() -> Bool {
+    open override class func allowsReverseTransformation() -> Bool {
         return true
     }
     
-    public override func reverseTransformedValue(value: AnyObject?) -> AnyObject? {
+    open override func reverseTransformedValue(_ value: Any?) -> Any? {
         if let reverseClosure = reverseClosure {
-            return reverseClosure(value: value)
+            return reverseClosure(value as AnyObject?)
         }
         return nil
     }

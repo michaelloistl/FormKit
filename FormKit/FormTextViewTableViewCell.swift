@@ -9,81 +9,81 @@
 import Foundation
 import UIKit
 
-public class FormTextViewTableViewCell: FormTextInputTableViewCell, NSLayoutManagerDelegate, UITextViewDelegate {
+open class FormTextViewTableViewCell: FormTextInputTableViewCell, NSLayoutManagerDelegate, UITextViewDelegate {
     
-    public var allowLineBreak = true
+    open var allowLineBreak = true
     
-    public var placeholder: String? {
+    open var placeholder: String? {
         didSet {
             placeholderLabel.text = placeholder
         }
     }
     
-    var placeholderLabelOffset = UIOffsetZero
+    var placeholderLabelOffset = UIOffset.zero
     
     var textViewWidth: CGFloat {
-        return CGRectGetWidth(contentView.bounds) - valueViewInsets.left - valueViewInsets.right
+        return contentView.bounds.width - valueViewInsets.left - valueViewInsets.right
     }
     
     var textViewHeight: CGFloat {
-        return textView.sizeThatFits(CGSizeMake(textViewWidth, CGFloat.max)).height
+        return textView.sizeThatFits(CGSize(width: textViewWidth, height: CGFloat.greatestFiniteMagnitude)).height
     }
     
-    public lazy var textView: FormTextView = {
+    open lazy var textView: FormTextView = {
         let _textView = FormTextView(forAutoLayout: ())
         _textView.delegate = self
         _textView.dataSource = self
         _textView.font = self.textLabel?.font
-        _textView.backgroundColor = UIColor.clearColor()
+        _textView.backgroundColor = UIColor.clear
         
-        _textView.contentInset = UIEdgeInsetsZero
-        _textView.textContainerInset = UIEdgeInsetsZero
+        _textView.contentInset = UIEdgeInsets.zero
+        _textView.textContainerInset = UIEdgeInsets.zero
         _textView.textContainer.lineFragmentPadding = 0
 
         return _textView
     }()
     
-    public lazy var placeholderLabel: UILabel = {
+    open lazy var placeholderLabel: UILabel = {
         let _label = UILabel(forAutoLayout: ())
         _label.font = self.textLabel?.font
-        _label.textColor = UIColor.lightGrayColor()
+        _label.textColor = UIColor.lightGray
         
         return _label
     }()
     
     lazy var textViewTopConstraint: NSLayoutConstraint = {
-        let _constraint = NSLayoutConstraint(item: self.textView, attribute: .Top, relatedBy: .Equal, toItem: self.contentView, attribute: .Top, multiplier: 1.0, constant: 0.0)
+        let _constraint = NSLayoutConstraint(item: self.textView, attribute: .top, relatedBy: .equal, toItem: self.contentView, attribute: .top, multiplier: 1.0, constant: 0.0)
         
         return _constraint
     }()
     
     lazy var textViewLeftConstraint: NSLayoutConstraint = {
-        let _constraint = NSLayoutConstraint(item: self.textView, attribute: .Left, relatedBy: .Equal, toItem: self.contentView, attribute: .Left, multiplier: 1.0, constant: 0.0)
+        let _constraint = NSLayoutConstraint(item: self.textView, attribute: .left, relatedBy: .equal, toItem: self.contentView, attribute: .left, multiplier: 1.0, constant: 0.0)
         
         return _constraint
     }()
     
     lazy var textViewBottomConstraint: NSLayoutConstraint = {
-        let _constraint = NSLayoutConstraint(item: self.textView, attribute: .Bottom, relatedBy: .Equal, toItem: self.contentView, attribute: .Bottom, multiplier: 1.0, constant: 0.0)
+        let _constraint = NSLayoutConstraint(item: self.textView, attribute: .bottom, relatedBy: .equal, toItem: self.contentView, attribute: .bottom, multiplier: 1.0, constant: 0.0)
         _constraint.priority = 750
         
         return _constraint
     }()
     
     lazy var textViewRightConstraint: NSLayoutConstraint = {
-        let _constraint = NSLayoutConstraint(item: self.textView, attribute: .Right, relatedBy: .Equal, toItem: self.contentView, attribute: .Right, multiplier: 1.0, constant: 0.0)
+        let _constraint = NSLayoutConstraint(item: self.textView, attribute: .right, relatedBy: .equal, toItem: self.contentView, attribute: .right, multiplier: 1.0, constant: 0.0)
         
         return _constraint
     }()
     
     lazy var placeholderLabelTopConstraint: NSLayoutConstraint = {
-        let _constraint = NSLayoutConstraint(item: self.placeholderLabel, attribute: .Top, relatedBy: .Equal, toItem: self.contentView, attribute: .Top, multiplier: 1.0, constant: 0.0)
+        let _constraint = NSLayoutConstraint(item: self.placeholderLabel, attribute: .top, relatedBy: .equal, toItem: self.contentView, attribute: .top, multiplier: 1.0, constant: 0.0)
         
         return _constraint
     }()
     
     lazy var placeholderLabelLeftConstraint: NSLayoutConstraint = {
-        let _constraint = NSLayoutConstraint(item: self.placeholderLabel, attribute: .Left, relatedBy: .Equal, toItem: self.contentView, attribute: .Left, multiplier: 1.0, constant: 0.0)
+        let _constraint = NSLayoutConstraint(item: self.placeholderLabel, attribute: .left, relatedBy: .equal, toItem: self.contentView, attribute: .left, multiplier: 1.0, constant: 0.0)
         
         return _constraint
     }()
@@ -95,8 +95,8 @@ public class FormTextViewTableViewCell: FormTextInputTableViewCell, NSLayoutMana
         
         maxRowHeight = 88.0
         
-        contentView.insertSubview(textView, atIndex: 0)
-        contentView.insertSubview(placeholderLabel, atIndex: 0)
+        contentView.insertSubview(textView, at: 0)
+        contentView.insertSubview(placeholderLabel, at: 0)
         
         contentView.addConstraints([textViewTopConstraint, textViewLeftConstraint, textViewBottomConstraint, textViewRightConstraint])
         contentView.addConstraints([placeholderLabelTopConstraint, placeholderLabelLeftConstraint])
@@ -108,19 +108,19 @@ public class FormTextViewTableViewCell: FormTextInputTableViewCell, NSLayoutMana
     
     // MARK: - Super
 
-    override public func isFirstResponder() -> Bool {
-        return textView.isFirstResponder()
+    override open var isFirstResponder : Bool {
+        return textView.isFirstResponder
     }
     
-    override public func becomeFirstResponder() -> Bool {
+    override open func becomeFirstResponder() -> Bool {
         return textView.becomeFirstResponder()
     }
     
-    override public func resignFirstResponder() -> Bool {
+    override open func resignFirstResponder() -> Bool {
         return textView.resignFirstResponder()
     }
     
-    public override func updateConstraints() {
+    open override func updateConstraints() {
         
         textViewTopConstraint.constant = valueViewInsets.top
         textViewLeftConstraint.constant = valueViewInsets.left
@@ -133,23 +133,23 @@ public class FormTextViewTableViewCell: FormTextInputTableViewCell, NSLayoutMana
         super.updateConstraints()
     }
     
-    override public func layoutSubviews() {
+    override open func layoutSubviews() {
         super.layoutSubviews()
         
-        textView.userInteractionEnabled = editable
+        textView.isUserInteractionEnabled = editable
     }
     
     // MARK: Methods
     
-    override public func valueView() -> UIView {
+    override open func valueView() -> UIView {
         return textView
     }
     
     // MARK: UITextViewDelegate
     
-    public func textView(textView: UITextView, shouldChangeTextInRange range: NSRange, replacementText text: String) -> Bool {
+    open func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
         if text == "\n" {
-            if textView.returnKeyType == .Next {
+            if textView.returnKeyType == .next {
                 nextFormTableViewCell()
             }
             
@@ -159,39 +159,39 @@ public class FormTextViewTableViewCell: FormTextInputTableViewCell, NSLayoutMana
         return true
     }
     
-    public func textViewDidChange(textView: UITextView) {
+    open func textViewDidChange(_ textView: UITextView) {
         
         layoutSubviews()
         
-        value = textView.text
+        value = textView.text as AnyObject?
 
         updateCharacterLabelWithCharacterCount(textView.text?.characters.count ?? 0)
         
-        placeholderLabel.hidden = !textView.text.isEmpty
+        placeholderLabel.isHidden = !textView.text.isEmpty
     }
     
-    public func textViewShouldBeginEditing(textView: UITextView) -> Bool {
+    open func textViewShouldBeginEditing(_ textView: UITextView) -> Bool {
         return editable
     }
     
-    public func textViewDidBeginEditing(textView: UITextView) {
+    open func textViewDidBeginEditing(_ textView: UITextView) {
         errorState = false
         delegate?.formCell?(self, didBecomeFirstResponder: textView)
     }
     
-    public func textViewDidEndEditing(textView: UITextView) {
+    open func textViewDidEndEditing(_ textView: UITextView) {
         delegate?.formCell?(self, didResignFirstResponder: textView)
     }
     
     // MARK: ScrollViewDelegate
     
-    public func scrollViewDidScroll(scrollView: UIScrollView) {
+    open func scrollViewDidScroll(_ scrollView: UIScrollView) {
         
     }
     
     // MARK: FormTableViewCellProtocol
     
-    override public func updateUI() {
+    override open func updateUI() {
         if let text = value as? String {
             if textView.text != text {
                 textView.text = ""
@@ -200,20 +200,20 @@ public class FormTextViewTableViewCell: FormTextInputTableViewCell, NSLayoutMana
         }
     }
     
-    override public func isEmpty() -> Bool {
+    override open func isEmpty() -> Bool {
         if let text = textView.text {
             return text.characters.count == 0
         }
         return true
     }
     
-    override public func rowHeight() -> CGFloat {
+    override open func rowHeight() -> CGFloat {
         if visible {
             let rowHeight = min(max(ceil(self.textViewHeight) + valueViewInsets.top + valueViewInsets.bottom, minRowHeight), maxRowHeight)
             
             let textViewHeight = rowHeight - valueViewInsets.top - valueViewInsets.bottom
 
-            textView.scrollEnabled = self.textViewHeight > textViewHeight
+            textView.isScrollEnabled = self.textViewHeight > textViewHeight
             
             return rowHeight
         }

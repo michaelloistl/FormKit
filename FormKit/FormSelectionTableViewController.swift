@@ -9,19 +9,19 @@
 import Foundation
 
 public protocol FormSelectionTableViewControllerDelegate {
-    func formSelectionTableViewController(sender: FormSelectionTableViewController, didSelectObjects objects: [AnyObject], withFormTableViewCellIdentifier identifier: String?)
-    func formSelectionTableViewController(sender: FormSelectionTableViewController,  tableView: UITableView, willDisplayCell cell: UITableViewCell, forRowAtIndexPath indexPath: NSIndexPath)
+    func formSelectionTableViewController(_ sender: FormSelectionTableViewController, didSelectObjects objects: [AnyObject], withFormTableViewCellIdentifier identifier: String?)
+    func formSelectionTableViewController(_ sender: FormSelectionTableViewController,  tableView: UITableView, willDisplayCell cell: UITableViewCell, forRowAtIndexPath indexPath: IndexPath)
 }
 
-public class FormSelectionTableViewController: UITableViewController  {
+open class FormSelectionTableViewController: UITableViewController  {
 
     let CellIdentifier = "com.michaelloistl.CellIdentifier"
     
-    public weak var formSelectionTableViewCell: FormSelectionTableViewCell?
+    open weak var formSelectionTableViewCell: FormSelectionTableViewCell?
 
-    var selectedIndexPath = [NSIndexPath]()
+    var selectedIndexPath = [IndexPath]()
     
-    public var allowsMultipleSelection = true
+    open var allowsMultipleSelection = true
     
 //    // FormSelectionProtocol
 //    public var dataSourceClosure: FormSelectionTableViewCell.DataSourceClosure?
@@ -40,18 +40,18 @@ public class FormSelectionTableViewController: UITableViewController  {
 //    public var delegate: FormSelectionTableViewControllerDelegate?
     
     lazy var clearBarButtonItem: UIBarButtonItem = {
-        let _barButtonItem = UIBarButtonItem(title: "Clear", style: .Plain, target: self, action: #selector(clearBarButtonItemTouchedUpInside(_:)))
-        _barButtonItem.enabled = false
+        let _barButtonItem = UIBarButtonItem(title: "Clear", style: .plain, target: self, action: #selector(clearBarButtonItemTouchedUpInside(_:)))
+        _barButtonItem.isEnabled = false
 
         return _barButtonItem
     }()
     
     // MARK: - Super
 
-    override public func viewDidLoad() {
+    override open func viewDidLoad() {
         super.viewDidLoad()
 
-        tableView.registerClass(UITableViewCell.self, forCellReuseIdentifier: CellIdentifier)
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: CellIdentifier)
         tableView.tableFooterView = UIView()
         
         if allowsMultipleSelection {
@@ -59,13 +59,13 @@ public class FormSelectionTableViewController: UITableViewController  {
         }
     }
 
-    public override func viewWillAppear(animated: Bool) {
+    open override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
-        selectedIndexPath = formSelectionTableViewCell?.getSelectedClosure?() ?? [NSIndexPath]()
+        selectedIndexPath = formSelectionTableViewCell?.getSelectedClosure?() as [IndexPath]? ?? [IndexPath]()
     }
     
-    override public func viewWillDisappear(animated: Bool) {
+    override open func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         
         formSelectionTableViewCell?.setSelectedClosure?(selectedIndexPath)
@@ -75,12 +75,12 @@ public class FormSelectionTableViewController: UITableViewController  {
     
     // MARK: Actions
     
-    func clearBarButtonItemTouchedUpInside(sender: UIBarButtonItem) {
+    func clearBarButtonItemTouchedUpInside(_ sender: UIBarButtonItem) {
         selectedIndexPath.removeAll()
         tableView.reloadData()
 
         if !allowsMultipleSelection {
-            navigationController?.popViewControllerAnimated(true)
+            navigationController?.popViewController(animated: true)
         }
     }
     
@@ -88,28 +88,28 @@ public class FormSelectionTableViewController: UITableViewController  {
     
     // MARK: UITableViewDataSource
     
-    override public func numberOfSectionsInTableView(tableView: UITableView) -> Int {
+    override open func numberOfSections(in tableView: UITableView) -> Int {
         return formSelectionTableViewCell?.dataSourceClosure?().count ?? 0
     }
     
-    override public func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    override open func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return formSelectionTableViewCell?.dataSourceClosure?()[section].count ?? 0
     }
     
-    override public func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        let tableViewCell = tableView.dequeueReusableCellWithIdentifier(CellIdentifier, forIndexPath: indexPath)
-        tableViewCell.textLabel?.text = formSelectionTableViewCell?.dataSourceClosure?()[indexPath.section][indexPath.row]
-        tableViewCell.selectionStyle = (allowsMultipleSelection) ? .None : .Default
-        tableViewCell.accessoryType = (selectedIndexPath.contains(indexPath)) ? .Checkmark : .None
+    override open func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let tableViewCell = tableView.dequeueReusableCell(withIdentifier: CellIdentifier, for: indexPath)
+        tableViewCell.textLabel?.text = formSelectionTableViewCell?.dataSourceClosure?()[(indexPath as NSIndexPath).section][(indexPath as NSIndexPath).row]
+        tableViewCell.selectionStyle = (allowsMultipleSelection) ? .none : .default
+        tableViewCell.accessoryType = (selectedIndexPath.contains(indexPath)) ? .checkmark : .none
 
         return tableViewCell
     }
     
     // MARK: UITableViewDelegate
     
-    override public func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
-        if let index = selectedIndexPath.indexOf({ $0 == indexPath}) {
-            selectedIndexPath.removeAtIndex(index)
+    override open func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        if let index = selectedIndexPath.index(where: { $0 == indexPath}) {
+            selectedIndexPath.remove(at: index)
         } else {
             if !allowsMultipleSelection {
                 selectedIndexPath.removeAll()
@@ -118,13 +118,13 @@ public class FormSelectionTableViewController: UITableViewController  {
             selectedIndexPath.append(indexPath)
         }
         
-        tableView.deselectRowAtIndexPath(indexPath, animated: true)
+        tableView.deselectRow(at: indexPath, animated: true)
         
         if allowsMultipleSelection {
-            clearBarButtonItem.enabled = selectedIndexPath.count > 0
-            tableView.reloadRowsAtIndexPaths([indexPath], withRowAnimation: .None)
+            clearBarButtonItem.isEnabled = selectedIndexPath.count > 0
+            tableView.reloadRows(at: [indexPath], with: .none)
         } else {
-            navigationController?.popViewControllerAnimated(true)
+            navigationController?.popViewController(animated: true)
         }
     }
     

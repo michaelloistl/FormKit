@@ -14,21 +14,21 @@ import UIKit
 //    var selectedClosure: FormSelectionTableViewCell.SelectedClosure? { get set }
 //}
 
-public class FormSelectionTableViewCell: FormTableViewCell {
+open class FormSelectionTableViewCell: FormTableViewCell {
 
 //    FormCellDataSource
     
     public typealias DataSourceClosure = () -> [[String]]
-    public typealias GetSelectedClosure = () -> [NSIndexPath]
-    public typealias SetSelectedClosure = ([NSIndexPath]) -> Void
+    public typealias GetSelectedClosure = () -> [IndexPath]
+    public typealias SetSelectedClosure = ([IndexPath]) -> Void
     
-    public var dataSourceClosure: DataSourceClosure?
-    public var getSelectedClosure: GetSelectedClosure?
-    public var setSelectedClosure: SetSelectedClosure?
+    open var dataSourceClosure: DataSourceClosure?
+    open var getSelectedClosure: GetSelectedClosure?
+    open var setSelectedClosure: SetSelectedClosure?
     
-    public var allowsMultipleSelection = false
+    open var allowsMultipleSelection = false
     
-    public var title: String?
+    open var title: String?
     
     // MARK: - Initializers
     
@@ -40,13 +40,13 @@ public class FormSelectionTableViewCell: FormTableViewCell {
         
         super.init(labelText: labelText, identifier: identifier, configurations: configurations, delegate: delegate)
         
-        accessoryType = .DisclosureIndicator
+        accessoryType = .disclosureIndicator
     }
 
     required public init(labelText: String?, identifier: String?, configurations: [FormCellConfiguration]?, delegate: FormTableViewCellDelegate?) {
         super.init(labelText: labelText, identifier: identifier, configurations: configurations, delegate: delegate)
         
-        accessoryType = .DisclosureIndicator
+        accessoryType = .disclosureIndicator
     }
     
     required public init?(coder aDecoder: NSCoder) {

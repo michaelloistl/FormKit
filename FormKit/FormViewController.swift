@@ -9,32 +9,32 @@
 import Foundation
 import UIKit
 
-public class FormViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, FormManagerDelegate, FormTableViewCellDelegate, FormSelectionTableViewControllerDelegate {
+open class FormViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, FormManagerDelegate, FormTableViewCellDelegate, FormSelectionTableViewControllerDelegate {
     
-    public var tableViewStyle: UITableViewStyle = .Grouped
+    open var tableViewStyle: UITableViewStyle = .grouped
     
-    public var animateRowHeightChanges = false
-    public var animateRowVisibilityChanges = false
+    open var animateRowHeightChanges = false
+    open var animateRowVisibilityChanges = false
     
-    public var isVisible: Bool {
-        return isViewLoaded() && view?.window != nil
+    open var isVisible: Bool {
+        return isViewLoaded && view?.window != nil
     }
     
     var visibleTableViewRect: CGRect {
         var _visibleTableViewRect = tableView.bounds
-        _visibleTableViewRect.size.height = CGRectGetHeight(tableView.bounds) - tableView.contentInset.bottom
+        _visibleTableViewRect.size.height = tableView.bounds.height - tableView.contentInset.bottom
         
         return _visibleTableViewRect
     }
     
-    public lazy var formManager: FormManager = {
+    open lazy var formManager: FormManager = {
         let _formManager = FormManager()
         _formManager.delegate = self
         
         return _formManager
         }()
     
-    public lazy var tableView: UITableView = {
+    open lazy var tableView: UITableView = {
         let _tableView = UITableView(frame: CGRect.zero, style: self.tableViewStyle)
         _tableView.translatesAutoresizingMaskIntoConstraints = false
         
@@ -56,7 +56,7 @@ public class FormViewController: UIViewController, UITableViewDataSource, UITabl
         self.tableViewStyle = style
     }
     
-    public override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: NSBundle?) {
+    public override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
         super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
     }
     
@@ -65,12 +65,12 @@ public class FormViewController: UIViewController, UITableViewDataSource, UITabl
     }
     
     deinit {
-        NSNotificationCenter.defaultCenter().removeObserver(self)
+        NotificationCenter.default.removeObserver(self)
     }
     
     // MARK: - Super
     
-    public override func viewDidLoad() {
+    open override func viewDidLoad() {
         super.viewDidLoad()
         
         view.addSubview(tableView)
@@ -80,13 +80,13 @@ public class FormViewController: UIViewController, UITableViewDataSource, UITabl
         setupForm()
     }
     
-    public override func viewDidAppear(animated: Bool) {
+    open override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         
         animateRowHeightChanges = true
     }
     
-    public override func viewWillDisappear(animated: Bool) {
+    open override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         
         animateRowHeightChanges = false
@@ -94,7 +94,7 @@ public class FormViewController: UIViewController, UITableViewDataSource, UITabl
     
     // MARK: - Methods
     
-    public func reloadTableView() {
+    open func reloadTableView() {
         formManager.shouldResignFirstResponder = false
         
         tableView.reloadData()
@@ -104,14 +104,14 @@ public class FormViewController: UIViewController, UITableViewDataSource, UITabl
     
     // MARK: Setup
     
-    public func setupForm() {
+    open func setupForm() {
 
     }
     
-    public func didSelectFormCell(sender: FormTableViewCell) {
+    open func didSelectFormCell(_ sender: FormTableViewCell) {
         if let action = sender.action {
-            action(cell: sender, value: sender.value)
-        } else if let formSelectionCell = sender as? FormSelectionTableViewCell where formSelectionCell.editable {
+            action(sender, sender.value)
+        } else if let formSelectionCell = sender as? FormSelectionTableViewCell , formSelectionCell.editable {
             let viewController = FormSelectionTableViewController()
             viewController.allowsMultipleSelection = formSelectionCell.allowsMultipleSelection
             viewController.formSelectionTableViewCell = formSelectionCell
@@ -130,19 +130,19 @@ public class FormViewController: UIViewController, UITableViewDataSource, UITabl
     
     // MARK: UITableViewDataSource
     
-    public func numberOfSectionsInTableView(tableView: UITableView) -> Int {
+    open func numberOfSections(in tableView: UITableView) -> Int {
         return formManager.numberOfSections()
     }
     
-    public func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    open func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return formManager.numberOfRowsInSection(section)
     }
     
-    public func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
+    open func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         return formManager.cellForRowAtIndexPath(indexPath)
     }
     
-    public func tableView(tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+    open func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         if let formSectionTitles = formManager.formSectionTitles {
             if formSectionTitles.count > section {
                 return formSectionTitles[section]
@@ -153,57 +153,57 @@ public class FormViewController: UIViewController, UITableViewDataSource, UITabl
     
     // MARK: UITableViewDelegate
     
-    public func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
-        if let formCell = tableView.cellForRowAtIndexPath(indexPath) as? FormTableViewCell {
+    open func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        if let formCell = tableView.cellForRow(at: indexPath) as? FormTableViewCell {
             didSelectFormCell(formCell)
         }
 
-        tableView.deselectRowAtIndexPath(indexPath, animated: true)
+        tableView.deselectRow(at: indexPath, animated: true)
     }
     
-    public func tableView(tableView: UITableView, willDisplayCell cell: UITableViewCell, forRowAtIndexPath indexPath: NSIndexPath) {
-        cell.separatorInset = UIEdgeInsetsZero
+    open func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        cell.separatorInset = UIEdgeInsets.zero
         cell.preservesSuperviewLayoutMargins = false
-        cell.layoutMargins = UIEdgeInsetsZero
+        cell.layoutMargins = UIEdgeInsets.zero
     }
     
-    public func tableView(tableView: UITableView, estimatedHeightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
+    open func tableView(_ tableView: UITableView, estimatedHeightForRowAt indexPath: IndexPath) -> CGFloat {
         return formManager.heightForRowAtIndexPath(indexPath) ?? 44
     }
     
     // MARK: FormManagerDelegate {
     
-    public func formManagerDidSetFormSections(sender: FormManager) {
+    open func formManagerDidSetFormSections(_ sender: FormManager) {
         reloadTableView()
     }
     
-    public func formManagerShouldReloadForm(sender: FormManager) {
+    open func formManagerShouldReloadForm(_ sender: FormManager) {
         reloadTableView()
     }
     
     // MARK: FormTableViewCellDelegate
     
-    public func formCell(sender: FormTableViewCell, didBecomeFirstResponder firstResponder: UIView?) {
-        if let indexPath = tableView.indexPathForCell(sender) {
-            let cellRect = tableView.rectForRowAtIndexPath(indexPath)
+    open func formCell(_ sender: FormTableViewCell, didBecomeFirstResponder firstResponder: UIView?) {
+        if let indexPath = tableView.indexPath(for: sender) {
+            let cellRect = tableView.rectForRow(at: indexPath)
             
             let completelyVisible = visibleTableViewRect.contains(cellRect)
             
             if !completelyVisible {
-                tableView.scrollToRowAtIndexPath(indexPath, atScrollPosition: .Bottom, animated: true)
+                tableView.scrollToRow(at: indexPath, at: .bottom, animated: true)
             }
         }
     }
     
-    public func formCell(sender: FormTableViewCell, didResignFirstResponder firstResponder: UIView?) {
+    open func formCell(_ sender: FormTableViewCell, didResignFirstResponder firstResponder: UIView?) {
         
     }
     
-    public func formCell(sender: FormTableViewCell, didChangeValue value: AnyObject?) {
+    open func formCell(_ sender: FormTableViewCell, didChangeValue value: AnyObject?) {
         
     }
     
-    public func formCell(sender: FormTableViewCell, didChangeRowHeightFrom from: CGFloat, to: CGFloat) {
+    open func formCell(_ sender: FormTableViewCell, didChangeRowHeightFrom from: CGFloat, to: CGFloat) {
         if formManager.reloadTransaction {
             formManager.shouldReloadAfterTransaction = true
         } else {
@@ -216,7 +216,7 @@ public class FormViewController: UIViewController, UITableViewDataSource, UITabl
         }
     }
     
-    public func formCell(sender: FormTableViewCell, didChangeRowVisibilityAtIndexPath from: NSIndexPath?, to: NSIndexPath?) {
+    open func formCell(_ sender: FormTableViewCell, didChangeRowVisibilityAtIndexPath from: IndexPath?, to: IndexPath?) {
         if formManager.reloadTransaction {
             formManager.shouldReloadAfterTransaction = true
         } else {
@@ -226,14 +226,14 @@ public class FormViewController: UIViewController, UITableViewDataSource, UITabl
                 // Insert
                 if from == nil {
                     if let indexPath = to {
-                        tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: .Middle)
+                        tableView.insertRows(at: [indexPath], with: .middle)
                     }
                 }
                     
                 // Remove
                 else if to == nil {
                     if let indexPath = from {
-                        tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Middle)
+                        tableView.deleteRows(at: [indexPath], with: .middle)
                     }
                 }
                 
@@ -244,47 +244,47 @@ public class FormViewController: UIViewController, UITableViewDataSource, UITabl
         }
     }
     
-    public func formCellDidRequestNextFormTableViewCell(sender: FormTableViewCell) {
+    open func formCellDidRequestNextFormTableViewCell(_ sender: FormTableViewCell) {
         if let nextFormCell = formManager.nextFormTableViewCell() {
-            if let indexPath = tableView.indexPathForCell(nextFormCell) {
-                let cellRect = tableView.rectForRowAtIndexPath(indexPath)
+            if let indexPath = tableView.indexPath(for: nextFormCell) {
+                let cellRect = tableView.rectForRow(at: indexPath)
                 
                 let completelyVisible = visibleTableViewRect.contains(cellRect)
                 
                 nextFormCell.becomeFirstResponder()
                 
                 if !completelyVisible {
-                    tableView.scrollToRowAtIndexPath(indexPath, atScrollPosition: .Bottom, animated: true)
+                    tableView.scrollToRow(at: indexPath, at: .bottom, animated: true)
                 }
             }
         }
     }
     
-    public func formCell(sender: FormTableViewCell, didTouchUpInsideButton button: UIButton) {
+    open func formCell(_ sender: FormTableViewCell, didTouchUpInsideButton button: UIButton) {
         
     }
     
-    public func formCellShouldResignFirstResponder(sender: FormTableViewCell) -> Bool {
+    open func formCellShouldResignFirstResponder(_ sender: FormTableViewCell) -> Bool {
         return formManager.shouldResignFirstResponder
     }
     
-    public func formCell(sender: FormTableViewCell, shouldValidateWithIdentifier validationIdentifier: String?) -> Bool {
+    open func formCell(_ sender: FormTableViewCell, shouldValidateWithIdentifier validationIdentifier: String?) -> Bool {
         return true
     }
     
-    public func formCell(sender: FormTextFieldTableViewCell, shouldChangeCharactersInRange range: NSRange, replacementString string: String) -> Bool {
+    open func formCell(_ sender: FormTextFieldTableViewCell, shouldChangeCharactersInRange range: NSRange, replacementString string: String) -> Bool {
         return true
     }
     
     // MARK: FormSelectionTableViewControllerDelegate
     
-    public func formSelectionTableViewController(sender: FormSelectionTableViewController, didSelectObjects objects: [AnyObject], withFormTableViewCellIdentifier identifier: String?) {
-        if let identifier = identifier, formCell = formManager.formCellWithIdentifier(identifier) {
+    open func formSelectionTableViewController(_ sender: FormSelectionTableViewController, didSelectObjects objects: [AnyObject], withFormTableViewCellIdentifier identifier: String?) {
+        if let identifier = identifier, let formCell = formManager.formCellWithIdentifier(identifier) {
             formCell.value = objects
         }
     }
     
-    public func formSelectionTableViewController(sender: FormSelectionTableViewController,  tableView: UITableView, willDisplayCell cell: UITableViewCell, forRowAtIndexPath indexPath: NSIndexPath) {
+    open func formSelectionTableViewController(_ sender: FormSelectionTableViewController,  tableView: UITableView, willDisplayCell cell: UITableViewCell, forRowAtIndexPath indexPath: IndexPath) {
         
     }
 }

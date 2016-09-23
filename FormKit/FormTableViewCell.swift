@@ -9,34 +9,54 @@
 import Foundation
 import UIKit
 import PureLayout
+fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
+  switch (lhs, rhs) {
+  case let (l?, r?):
+    return l < r
+  case (nil, _?):
+    return true
+  default:
+    return false
+  }
+}
 
-public typealias FormCellActionClosure = (cell: FormTableViewCell, value: AnyObject?) -> ()
+fileprivate func > <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
+  switch (lhs, rhs) {
+  case let (l?, r?):
+    return l > r
+  default:
+    return rhs < lhs
+  }
+}
+
+
+public typealias FormCellActionClosure = (_ cell: FormTableViewCell, _ value: AnyObject?) -> ()
 
 // TODO: Clean up FormTableViewCellProtocol to keep only vars and funcs that are required due to dependencies
 
 @objc public protocol FormTableViewCellDelegate {
-    optional func formCell(sender: FormTableViewCell, didBecomeFirstResponder firstResponder: UIView?)
-    optional func formCell(sender: FormTableViewCell, didResignFirstResponder firstResponder: UIView?)
-    optional func formCell(sender: FormTableViewCell, didChangeValue value: AnyObject?)
-    optional func formCell(sender: FormTableViewCell, didChangeRowHeightFrom from: CGFloat, to: CGFloat)
-    optional func formCell(sender: FormTableViewCell, didChangeRowVisibilityAtIndexPath from: NSIndexPath?, to: NSIndexPath?)
-    optional func formCellDidRequestNextFormTableViewCell(sender: FormTableViewCell)
-    optional func formCell(sender: FormTableViewCell, didTouchUpInsideButton button: UIButton)
-    optional func formCellShouldResignFirstResponder(sender: FormTableViewCell) -> Bool
-    optional func formCell(sender: FormTableViewCell, shouldValidateWithIdentifier validationIdentifier: String?) -> Bool
+    @objc optional func formCell(_ sender: FormTableViewCell, didBecomeFirstResponder firstResponder: UIView?)
+    @objc optional func formCell(_ sender: FormTableViewCell, didResignFirstResponder firstResponder: UIView?)
+    @objc optional func formCell(_ sender: FormTableViewCell, didChangeValue value: AnyObject?)
+    @objc optional func formCell(_ sender: FormTableViewCell, didChangeRowHeightFrom from: CGFloat, to: CGFloat)
+    @objc optional func formCell(_ sender: FormTableViewCell, didChangeRowVisibilityAtIndexPath from: IndexPath?, to: IndexPath?)
+    @objc optional func formCellDidRequestNextFormTableViewCell(_ sender: FormTableViewCell)
+    @objc optional func formCell(_ sender: FormTableViewCell, didTouchUpInsideButton button: UIButton)
+    @objc optional func formCellShouldResignFirstResponder(_ sender: FormTableViewCell) -> Bool
+    @objc optional func formCell(_ sender: FormTableViewCell, shouldValidateWithIdentifier validationIdentifier: String?) -> Bool
     
-    optional func formCell(sender: FormTextFieldTableViewCell, shouldChangeCharactersInRange range: NSRange, replacementString string: String) -> Bool
+    @objc optional func formCell(_ sender: FormTextFieldTableViewCell, shouldChangeCharactersInRange range: NSRange, replacementString string: String) -> Bool
 }
 
 public struct FormCellConfiguration {
     
-    public typealias ConfigClosure = (cell: FormTableViewCell, value: AnyObject?, label: UILabel, valueView: UIView) -> Void
+    public typealias ConfigClosure = (_ cell: FormTableViewCell, _ value: AnyObject?, _ label: UILabel, _ valueView: UIView) -> Void
     
     public let config: ConfigClosure
     
     // MARK: - Initializers
     
-    public init(config: ConfigClosure) {
+    public init(config: @escaping ConfigClosure) {
         self.config = config
     }
     
@@ -50,12 +70,12 @@ public struct FormCellConfiguration {
             
             // TextField
             if let textField = valueView as? UITextField {
-                textField.textColor = (cell.editable) ? UIColor.blackColor() : UIColor.grayColor()
+                textField.textColor = (cell.editable) ? UIColor.black : UIColor.gray
             }
             
             // TextView
             if let textView = valueView as? UITextView {
-                textView.textColor = (cell.editable) ? UIColor.blackColor() : UIColor.grayColor()
+                textView.textColor = (cell.editable) ? UIColor.black : UIColor.gray
             }
         })
     }
@@ -63,9 +83,9 @@ public struct FormCellConfiguration {
     public static func emailConfiguration() -> FormCellConfiguration {
         return FormCellConfiguration(config: { (cell, value, label, valueView) -> Void in
             if let textField = valueView as? UITextField {
-                textField.keyboardType = .EmailAddress
-                textField.autocorrectionType = .No
-                textField.autocapitalizationType = .None
+                textField.keyboardType = .emailAddress
+                textField.autocorrectionType = .no
+                textField.autocapitalizationType = .none
             }
         })
     }
@@ -73,9 +93,9 @@ public struct FormCellConfiguration {
     public static func passwordConfiguration() -> FormCellConfiguration {
         return FormCellConfiguration(config: { (cell, value, label, valueView) -> Void in
             if let textField = valueView as? UITextField {
-                textField.secureTextEntry = true
-                textField.autocorrectionType = .No
-                textField.autocapitalizationType = .None
+                textField.isSecureTextEntry = true
+                textField.autocorrectionType = .no
+                textField.autocapitalizationType = .none
             }
         })
     }
@@ -83,7 +103,7 @@ public struct FormCellConfiguration {
 
 public struct FormCellValidation {
     
-    public typealias ValidationClosure = (value: AnyObject?) -> Bool
+    public typealias ValidationClosure = (_ value: AnyObject?) -> Bool
     
     public let closure: ValidationClosure
     public let errorMessage: String
@@ -91,7 +111,7 @@ public struct FormCellValidation {
     
     // MARK: - Initializers
     
-    public init(closure: ValidationClosure, errorMessage: String, identifier: String? = nil) {
+    public init(closure: @escaping ValidationClosure, errorMessage: String, identifier: String? = nil) {
         self.closure = closure
         self.errorMessage = errorMessage
         self.identifier = identifier
@@ -110,9 +130,9 @@ public struct FormCellValidation {
 public struct FormCellDataSource {
     
     public typealias SetFormCellValueClosure = () -> AnyObject?
-    public typealias GetFormCellValueClosure = (value: AnyObject?) -> AnyObject?
-    public typealias DidChangeFormCellValueClosure = (oldValue: AnyObject?, newValue: AnyObject?) -> Void
-    public typealias WriteObjectValueClosure = (value: AnyObject?) -> Void
+    public typealias GetFormCellValueClosure = (_ value: AnyObject?) -> AnyObject?
+    public typealias DidChangeFormCellValueClosure = (_ oldValue: AnyObject?, _ newValue: AnyObject?) -> Void
+    public typealias WriteObjectValueClosure = (_ value: AnyObject?) -> Void
 
     public let setFormCellValue: SetFormCellValueClosure
     public let getFormCellValue: GetFormCellValueClosure?
@@ -121,7 +141,7 @@ public struct FormCellDataSource {
     
     // MARK: - Initializers
     
-    public init(setFormCellValue: SetFormCellValueClosure,
+    public init(setFormCellValue: @escaping SetFormCellValueClosure,
                 getFormCellValue: GetFormCellValueClosure? = nil,
                 didChangeFormCellValue: DidChangeFormCellValueClosure? = nil,
                 writeObjectValue: WriteObjectValueClosure? = nil) {
@@ -133,26 +153,26 @@ public struct FormCellDataSource {
     }
 }
 
-public class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
+open class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
     
-    public var delegate: FormTableViewCellDelegate?
+    open var delegate: FormTableViewCellDelegate?
     
-    public var value: AnyObject? {
+    open var value: AnyObject? {
         didSet {
             updateUI()
             
             delegate?.formCell?(self, didChangeValue: value)
             
-            valueDataSource?.didChangeFormCellValue?(oldValue: oldValue, newValue: value)
+            valueDataSource?.didChangeFormCellValue?(oldValue, value)
             
-            cachedRowSize = CGSizeMake(CGRectGetWidth(bounds), self.rowHeight())
+            cachedRowSize = CGSize(width: bounds.width, height: self.rowHeight())
             
             updateConstraints()
             layoutSubviews()
         }
     }
     
-    var cachedRowSize: CGSize = CGSizeZero {
+    var cachedRowSize: CGSize = CGSize.zero {
         didSet {
             if oldValue.height != 0 && oldValue.height != cachedRowSize.height { // oldValue.width != cachedRowSize.width ||
                 delegate?.formCell?(self, didChangeRowHeightFrom: oldValue.height, to: cachedRowSize.height)
@@ -160,9 +180,9 @@ public class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
         }
     }
     
-    public var identifier: String?
+    open var identifier: String?
     
-    public var visible: Bool = true {
+    open var visible: Bool = true {
         willSet {
             if visible != newValue {
                 if let formManager = formManager {
@@ -185,9 +205,9 @@ public class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
         }
     }
     
-    public var validate = true
+    open var validate = true
     
-    public var editable = true {
+    open var editable = true {
         didSet {
             if editable != oldValue {
                 updateConstraints()
@@ -196,152 +216,152 @@ public class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
         }
     }
     
-    public var errorState: Bool = false {
+    open var errorState: Bool = false {
         didSet {
             config()
         }
     }
     
-    public var formManager: FormManager?
+    open var formManager: FormManager?
     
-    public var configurations = [FormCellConfiguration]()
+    open var configurations = [FormCellConfiguration]()
     
-    public var validations = [FormCellValidation]()
+    open var validations = [FormCellValidation]()
     
-    public var valueDataSource: FormCellDataSource?
+    open var valueDataSource: FormCellDataSource?
     
-    public var labelInsets = UIEdgeInsetsMake(0, 16, 0, 16)
+    open var labelInsets = UIEdgeInsetsMake(0, 16, 0, 16)
     
-    public var valueViewInsets = UIEdgeInsetsMake(11, 120, 11, 16)
+    open var valueViewInsets = UIEdgeInsetsMake(11, 120, 11, 16)
     
-    public var buttonInsets = UIEdgeInsetsZero
+    open var buttonInsets = UIEdgeInsets.zero
     
-    public var bottomLineInsets = UIEdgeInsetsMake(0, 16, 0, 100)
+    open var bottomLineInsets = UIEdgeInsetsMake(0, 16, 0, 100)
     
-    public var bottomLineWidth: CGFloat = 0
+    open var bottomLineWidth: CGFloat = 0
     
-    public var minRowHeight: CGFloat = 44.0
+    open var minRowHeight: CGFloat = 44.0
     
-    public var maxRowHeight: CGFloat = 44.0
+    open var maxRowHeight: CGFloat = 44.0
     
-    public var defaultLabelTextColor = UIColor.blackColor()
+    open var defaultLabelTextColor = UIColor.black
     
-    public var errorLabelTextColor = UIColor.redColor()
+    open var errorLabelTextColor = UIColor.red
     
-    public var valueStringClosure: ((value: AnyObject?) -> String)?
+    open var valueStringClosure: ((_ value: AnyObject?) -> String)?
     
-    private var fromIndexPath: NSIndexPath?
+    fileprivate var fromIndexPath: IndexPath?
     
-    private var toIndexPath: NSIndexPath?
+    fileprivate var toIndexPath: IndexPath?
     
-    public var labelVerticallyCentered = true
+    open var labelVerticallyCentered = true
     
-    public var action: FormCellActionClosure?
+    open var action: FormCellActionClosure?
     
-    public lazy var keyboardAccessoryView: KeyboardAccessoryView = {
-        let _keyboardAccessoryView = KeyboardAccessoryView(frame: CGRectMake(0, 0, CGRectGetWidth(self.contentView.bounds), 44))
+    open lazy var keyboardAccessoryView: KeyboardAccessoryView = {
+        let _keyboardAccessoryView = KeyboardAccessoryView(frame: CGRect(x: 0, y: 0, width: self.contentView.bounds.width, height: 44))
         _keyboardAccessoryView.addSubview(self.pickerClearButton)
         _keyboardAccessoryView.addSubview(self.pickerDoneButton)
         
         return _keyboardAccessoryView
         }()
     
-    public lazy var pickerDoneButton: UIButton = {
-        let _pickerDoneButton = UIButton(type: .System)
+    open lazy var pickerDoneButton: UIButton = {
+        let _pickerDoneButton = UIButton(type: .system)
         _pickerDoneButton.translatesAutoresizingMaskIntoConstraints = false
-        _pickerDoneButton.setTitle("Done", forState: .Normal)
-        _pickerDoneButton.addTarget(self, action: #selector(pickerDoneButtonTouchedUpInside(_:)), forControlEvents: .TouchUpInside)
+        _pickerDoneButton.setTitle("Done", for: UIControlState())
+        _pickerDoneButton.addTarget(self, action: #selector(pickerDoneButtonTouchedUpInside(_:)), for: .touchUpInside)
         
         return _pickerDoneButton
         }()
     
-    public lazy var pickerClearButton: UIButton = {
-        let _pickerClearButton = UIButton(type: .System)
+    open lazy var pickerClearButton: UIButton = {
+        let _pickerClearButton = UIButton(type: .system)
         _pickerClearButton.translatesAutoresizingMaskIntoConstraints = false
-        _pickerClearButton.setTitle("Clear", forState: .Normal)
-        _pickerClearButton.addTarget(self, action: #selector(pickerClearButtonTouchedUpInside(_:)), forControlEvents: .TouchUpInside)
+        _pickerClearButton.setTitle("Clear", for: UIControlState())
+        _pickerClearButton.addTarget(self, action: #selector(pickerClearButtonTouchedUpInside(_:)), for: .touchUpInside)
         
         return _pickerClearButton
         }()
     
-    public lazy var label: UILabel = {
+    open lazy var label: UILabel = {
         let _label = UILabel(forAutoLayout: ())
-        _label.backgroundColor = UIColor.clearColor()
+        _label.backgroundColor = UIColor.clear
         
         return _label
         }()
     
     lazy var labelTopConstraint: NSLayoutConstraint = {
-        let _constraint = NSLayoutConstraint(item: self.label, attribute: .Top, relatedBy: .Equal, toItem: self.contentView, attribute: .Top, multiplier: 1.0, constant: 0.0)
+        let _constraint = NSLayoutConstraint(item: self.label, attribute: .top, relatedBy: .equal, toItem: self.contentView, attribute: .top, multiplier: 1.0, constant: 0.0)
         
         return _constraint
     }()
     
     lazy var labelLeftConstraint: NSLayoutConstraint = {
-        let _constraint = NSLayoutConstraint(item: self.label, attribute: .Left, relatedBy: .Equal, toItem: self.contentView, attribute: .Left, multiplier: 1.0, constant: 0.0)
+        let _constraint = NSLayoutConstraint(item: self.label, attribute: .left, relatedBy: .equal, toItem: self.contentView, attribute: .left, multiplier: 1.0, constant: 0.0)
         
         return _constraint
     }()
     
     lazy var labelBottomConstraint: NSLayoutConstraint = {
-        let _constraint = NSLayoutConstraint(item: self.label, attribute: .Bottom, relatedBy: .Equal, toItem: self.contentView, attribute: .Bottom, multiplier: 1.0, constant: 0.0)
+        let _constraint = NSLayoutConstraint(item: self.label, attribute: .bottom, relatedBy: .equal, toItem: self.contentView, attribute: .bottom, multiplier: 1.0, constant: 0.0)
         
         return _constraint
     }()
     
     lazy var labelRightConstraint: NSLayoutConstraint = {
-        let _constraint = NSLayoutConstraint(item: self.label, attribute: .Right, relatedBy: .Equal, toItem: self.contentView, attribute: .Right, multiplier: 1.0, constant: 0.0)
+        let _constraint = NSLayoutConstraint(item: self.label, attribute: .right, relatedBy: .equal, toItem: self.contentView, attribute: .right, multiplier: 1.0, constant: 0.0)
         
         return _constraint
     }()
     
-    public lazy var valueTextView: FormTextView = {
+    open lazy var valueTextView: FormTextView = {
         let _textView = FormTextView(forAutoLayout: ())
         _textView.dataSource = self
         
-        _textView.textColor = UIColor.grayColor()
+        _textView.textColor = UIColor.gray
         _textView.font = self.label.font
-        _textView.textAlignment = .Right
-        _textView.backgroundColor = UIColor.clearColor()
+        _textView.textAlignment = .right
+        _textView.backgroundColor = UIColor.clear
         
-        _textView.editable = false
-        _textView.selectable = true
-        _textView.scrollEnabled = false
-        _textView.userInteractionEnabled = false
+        _textView.isEditable = false
+        _textView.isSelectable = true
+        _textView.isScrollEnabled = false
+        _textView.isUserInteractionEnabled = false
         
-        _textView.contentInset = UIEdgeInsetsZero
-        _textView.textContainerInset = UIEdgeInsetsZero
+        _textView.contentInset = UIEdgeInsets.zero
+        _textView.textContainerInset = UIEdgeInsets.zero
         _textView.textContainer.lineFragmentPadding = 0
 
         return _textView
     }()
     
     lazy var valueTextViewTopConstraint: NSLayoutConstraint = {
-        let _constraint = NSLayoutConstraint(item: self.valueTextView, attribute: .Top, relatedBy: .Equal, toItem: self.contentView, attribute: .Top, multiplier: 1.0, constant: 0.0)
+        let _constraint = NSLayoutConstraint(item: self.valueTextView, attribute: .top, relatedBy: .equal, toItem: self.contentView, attribute: .top, multiplier: 1.0, constant: 0.0)
         
         return _constraint
     }()
     
     lazy var valueTextViewLeftConstraint: NSLayoutConstraint = {
-        let _constraint = NSLayoutConstraint(item: self.valueTextView, attribute: .Left, relatedBy: .Equal, toItem: self.contentView, attribute: .Left, multiplier: 1.0, constant: 0.0)
+        let _constraint = NSLayoutConstraint(item: self.valueTextView, attribute: .left, relatedBy: .equal, toItem: self.contentView, attribute: .left, multiplier: 1.0, constant: 0.0)
         
         return _constraint
     }()
     
     lazy var valueTextViewBottomConstraint: NSLayoutConstraint = {
-        let _constraint = NSLayoutConstraint(item: self.valueTextView, attribute: .Bottom, relatedBy: .Equal, toItem: self.contentView, attribute: .Bottom, multiplier: 1.0, constant: 0.0)
+        let _constraint = NSLayoutConstraint(item: self.valueTextView, attribute: .bottom, relatedBy: .equal, toItem: self.contentView, attribute: .bottom, multiplier: 1.0, constant: 0.0)
         _constraint.priority = 750
         
         return _constraint
     }()
     
     lazy var valueTextViewRightConstraint: NSLayoutConstraint = {
-        let _constraint = NSLayoutConstraint(item: self.valueTextView, attribute: .Right, relatedBy: .Equal, toItem: self.contentView, attribute: .Right, multiplier: 1.0, constant: 0.0)
+        let _constraint = NSLayoutConstraint(item: self.valueTextView, attribute: .right, relatedBy: .equal, toItem: self.contentView, attribute: .right, multiplier: 1.0, constant: 0.0)
         
         return _constraint
     }()
     
-    public lazy var bottomSeparatorView: UIView = {
+    open lazy var bottomSeparatorView: UIView = {
         let _bottomSeparatorView = UIView(forAutoLayout: ())
         _bottomSeparatorView.backgroundColor = UIColor(red: 200/255, green: 199/255, blue: 204/255, alpha: 1)
         
@@ -349,19 +369,19 @@ public class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
         }()
     
     lazy var bottomSeparatorViewLeftConstraint: NSLayoutConstraint = {
-        let _constraint = NSLayoutConstraint(item: self.bottomSeparatorView, attribute: .Left, relatedBy: .Equal, toItem: self.contentView, attribute: .Left, multiplier: 1.0, constant: 0.0)
+        let _constraint = NSLayoutConstraint(item: self.bottomSeparatorView, attribute: .left, relatedBy: .equal, toItem: self.contentView, attribute: .left, multiplier: 1.0, constant: 0.0)
         
         return _constraint
     }()
 
     lazy var bottomSeparatorViewRightConstraint: NSLayoutConstraint = {
-        let _constraint = NSLayoutConstraint(item: self.bottomSeparatorView, attribute: .Right, relatedBy: .Equal, toItem: self.contentView, attribute: .Right, multiplier: 1.0, constant: 0.0)
+        let _constraint = NSLayoutConstraint(item: self.bottomSeparatorView, attribute: .right, relatedBy: .equal, toItem: self.contentView, attribute: .right, multiplier: 1.0, constant: 0.0)
         
         return _constraint
     }()
 
     lazy var bottomSeparatorViewHeightConstraint: NSLayoutConstraint = {
-        let _constraint = NSLayoutConstraint(item: self.bottomSeparatorView, attribute: .Height, relatedBy: .Equal, toItem: nil, attribute: .NotAnAttribute, multiplier: 1.0, constant: 0.0)
+        let _constraint = NSLayoutConstraint(item: self.bottomSeparatorView, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: 0.0)
         
         return _constraint
     }()
@@ -372,20 +392,20 @@ public class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
         self.identifier = identifier
         self.delegate = delegate
 
-        super.init(style: .Default, reuseIdentifier: identifier)
+        super.init(style: .default, reuseIdentifier: identifier)
 
         contentView.addSubview(bottomSeparatorView)
         contentView.addSubview(label)
         contentView.addSubview(valueTextView)
                 
         // KeyboardAccessoryView
-        pickerClearButton.autoAlignAxis(.Horizontal, toSameAxisOfView: keyboardAccessoryView)
-        pickerClearButton.autoPinEdge(.Left, toEdge: .Left, ofView: keyboardAccessoryView, withOffset: 16)
-        pickerDoneButton.autoAlignAxis(.Horizontal, toSameAxisOfView: keyboardAccessoryView)
-        pickerDoneButton.autoPinEdge(.Right, toEdge: .Right, ofView: keyboardAccessoryView, withOffset: -16)
+        pickerClearButton.autoAlignAxis(.horizontal, toSameAxisOf: keyboardAccessoryView)
+        pickerClearButton.autoPinEdge(.left, to: .left, of: keyboardAccessoryView, withOffset: 16)
+        pickerDoneButton.autoAlignAxis(.horizontal, toSameAxisOf: keyboardAccessoryView)
+        pickerDoneButton.autoPinEdge(.right, to: .right, of: keyboardAccessoryView, withOffset: -16)
         
         // bottomSeparatorView
-        bottomSeparatorView.autoPinEdge(.Bottom, toEdge: .Bottom, ofView: contentView)
+        bottomSeparatorView.autoPinEdge(.bottom, to: .bottom, of: contentView)
         
         // Constraints
         contentView.addConstraints([labelTopConstraint, labelLeftConstraint, labelBottomConstraint, labelRightConstraint])
@@ -406,21 +426,21 @@ public class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
     }
     
     deinit {
-        NSNotificationCenter.defaultCenter().removeObserver(self)
+        NotificationCenter.default.removeObserver(self)
     }
 
     // MARK: - Super
     
-    override public func becomeFirstResponder() -> Bool {
+    override open func becomeFirstResponder() -> Bool {
         errorState = false
         return false
     }
     
-    override public func resignFirstResponder() -> Bool {
+    override open func resignFirstResponder() -> Bool {
         return false
     }
     
-    public override func updateConstraints() {
+    open override func updateConstraints() {
         
         // Label
         labelTopConstraint.constant = labelInsets.top
@@ -428,7 +448,7 @@ public class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
         labelBottomConstraint.constant = -labelInsets.bottom
         labelRightConstraint.constant = -labelInsets.right
         
-        labelBottomConstraint.active = labelVerticallyCentered
+        labelBottomConstraint.isActive = labelVerticallyCentered
         
         // ValueTextView
         valueTextViewTopConstraint.constant = valueViewInsets.top
@@ -444,11 +464,11 @@ public class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
         super.updateConstraints()
     }
     
-    override public func layoutSubviews() {
+    override open func layoutSubviews() {
         config()
         
-        if CGRectGetWidth(bounds) != cachedRowSize.width {
-            cachedRowSize = CGSizeMake(CGRectGetWidth(bounds), self.rowHeight())
+        if bounds.width != cachedRowSize.width {
+            cachedRowSize = CGSize(width: bounds.width, height: self.rowHeight())
         }
         
         super.layoutSubviews()
@@ -456,11 +476,11 @@ public class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
     
     // MARK: - Methods
     
-    public func isEmpty() -> Bool {
+    open func isEmpty() -> Bool {
         return value == nil
     }
     
-    public func isValid(showErrorState: Bool = true) -> Bool {
+    open func isValid(_ showErrorState: Bool = true) -> Bool {
         if validate {
             let isValid = validateValue() == nil
             if showErrorState {
@@ -472,27 +492,27 @@ public class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
         return true
     }
     
-    public func config() {
+    open func config() {
         for configuration in configurations {
-            configuration.config(cell: self, value: self.value, label: self.label, valueView: self.valueView())
+            configuration.config(self, self.value, self.label, self.valueView())
             setNeedsUpdateConstraints()
         }
     }
     
-    public func updateUI() {
+    open func updateUI() {
         valueTextView.text = valueString()
     }
     
-    public func valueView() -> UIView {
+    open func valueView() -> UIView {
         return valueTextView
     }
     
-    public func valueString() -> String? {
+    open func valueString() -> String? {
         if let valueStringClosure = valueStringClosure {
-            return valueStringClosure(value: value)
+            return valueStringClosure(value)
         } else {
             if let stringArray = value as? [String] {
-                return stringArray.joinWithSeparator(", ")
+                return stringArray.joined(separator: ", ")
             }
 //            else if let array = value as? [AnyObject] {
 //                var selectableObjects = [FormSelectable]()
@@ -519,8 +539,8 @@ public class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
         return nil
     }
     
-    public func rowHeight() -> CGFloat {
-        let maxWidth = CGRectGetWidth(UIScreen.mainScreen().bounds) - valueViewInsets.left - valueViewInsets.right
+    open func rowHeight() -> CGFloat {
+        let maxWidth = UIScreen.main.bounds.width - valueViewInsets.left - valueViewInsets.right
         
         var valueViewHeight: CGFloat = 0
         if let text = valueString() {
@@ -532,7 +552,7 @@ public class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
         return rowHeight
     }
     
-    public func setValue() -> Bool {
+    open func setValue() -> Bool {
         if let valueDataSource = valueDataSource {
             self.value = valueDataSource.setFormCellValue()
             return true
@@ -541,67 +561,67 @@ public class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
         return false
     }
     
-    public func getValue() -> AnyObject? {
+    open func getValue() -> AnyObject? {
         if let valueDataSource = valueDataSource {
-            return valueDataSource.getFormCellValue?(value: self.value)
+            return valueDataSource.getFormCellValue?(self.value)
         }
         
         return value
     }
     
-    public func writeObjectValue() {
-        valueDataSource?.writeObjectValue?(value: self.value)
+    open func writeObjectValue() {
+        valueDataSource?.writeObjectValue?(self.value)
     }
     
     // MARK: Actions
     
-    public func pickerClearButtonTouchedUpInside(sender: UIButton) {
+    open func pickerClearButtonTouchedUpInside(_ sender: UIButton) {
         
     }
     
-    public func pickerDoneButtonTouchedUpInside(sender: UIButton) {
+    open func pickerDoneButtonTouchedUpInside(_ sender: UIButton) {
         
     }
     
     // MARK: FormCellConfiguration
 
-    public func removeAllConfigurations() {
+    open func removeAllConfigurations() {
         configurations.removeAll()
     }
 
-    public func addConfiguration(configuration: FormCellConfiguration) {
+    open func addConfiguration(_ configuration: FormCellConfiguration) {
         configurations.append(configuration)
         
         config()
     }
     
-    public func addConfigurations(configurations: [FormCellConfiguration]) {
+    open func addConfigurations(_ configurations: [FormCellConfiguration]) {
         for configuration in configurations {
             addConfiguration(configuration)
         }
     }
     
-    public func addConfiguration(configuration: FormCellConfiguration.ConfigClosure) {
+    open func addConfiguration(_ configuration: @escaping FormCellConfiguration.ConfigClosure) {
         let config = FormCellConfiguration(config: configuration)
         addConfiguration(config)
     }
     
     // MARK: FormCellValidation
     
-    public func removeAllValidations() {
+    open func removeAllValidations() {
         validations.removeAll()
     }
     
-    public func addValidation(validation: FormCellValidation) {
+    open func addValidation(_ validation: FormCellValidation) {
         validations.append(validation)
     }
     
-    public func addValidation(validation: FormCellValidation.ValidationClosure, errorMessage: String, identifier: String? = nil) {
+    open func addValidation(_ validation: @escaping FormCellValidation.ValidationClosure, errorMessage: String, identifier: String? = nil) {
         let validation = FormCellValidation(closure: validation, errorMessage: errorMessage, identifier: identifier)
         validations.append(validation)
     }
     
-    public func addValidationForTypeEmail(identifier: String? = nil) {
+    open func addValidationForTypeEmail(_ identifier: String? = nil) {
         addValidation({ (value) -> Bool in
             if let stringValue = value as? String {
                 return stringValue.isValidEmail()
@@ -610,13 +630,13 @@ public class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
             }, errorMessage: "Invalid email address", identifier: identifier)
     }
     
-    public func addValidationForNotNilValue(identifier: String? = nil) {
+    open func addValidationForNotNilValue(_ identifier: String? = nil) {
         addValidation({ (value) -> Bool in
             return value != nil
             }, errorMessage: "Value must be not nil", identifier: identifier)
     }
     
-    public func addValidationForTypeStringWithMinLength(length: Int, identifier: String? = nil) {
+    open func addValidationForTypeStringWithMinLength(_ length: Int, identifier: String? = nil) {
         let characterString = (length > 1) ? "characters" : "character"
         addValidation({ (value) -> Bool in
             if let stringValue = value as? String {
@@ -626,7 +646,7 @@ public class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
             }, errorMessage: "Must be at least \(length) \(characterString)", identifier: identifier)
     }
     
-    public func addValidationForTypeStringWithMaxLength(length: Int, identifier: String? = nil) {
+    open func addValidationForTypeStringWithMaxLength(_ length: Int, identifier: String? = nil) {
         let characterString = (length > 1) ? "characters" : "character"
         addValidation({ (value) -> Bool in
             if let stringValue = value as? String {
@@ -636,7 +656,7 @@ public class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
             }, errorMessage: "Must be at most \(length) \(characterString)", identifier: identifier)
     }
     
-    public func addValidationForTypeNumericWithMinNumber(number: Double, identifier: String? = nil) {
+    open func addValidationForTypeNumericWithMinNumber(_ number: Double, identifier: String? = nil) {
         addValidation({ (value) -> Bool in
             if let doubleValue = value?.doubleValue {
                 return doubleValue >= number
@@ -645,7 +665,7 @@ public class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
             }, errorMessage: "Must be at least \(number)", identifier: identifier)
     }
     
-    public func addValidationForTypeNumericWithMaxNumber(number: Double, identifier: String) {
+    open func addValidationForTypeNumericWithMaxNumber(_ number: Double, identifier: String) {
         addValidation({ (value) -> Bool in
             if let doubleValue = value?.doubleValue {
                 return doubleValue <= number
@@ -659,7 +679,7 @@ public class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
         for validation in validations {
             let shouldValidate = delegate?.formCell?(self, shouldValidateWithIdentifier: validation.identifier) ?? true
             if shouldValidate {
-                if validation.closure(value: value) == false {
+                if validation.closure(value) == false {
                     failedValidations.append(validation)
                 }
             }
@@ -672,15 +692,15 @@ public class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
     
     // MARK: FormTextViewDataSource
     
-    public func formTextViewMinHeight(sender: FormTextView) -> CGFloat {
+    open func formTextViewMinHeight(_ sender: FormTextView) -> CGFloat {
         return minRowHeight - valueViewInsets.top - valueViewInsets.bottom
     }
     
-    public func formTextViewMaxHeight(sender: FormTextView) -> CGFloat {
+    open func formTextViewMaxHeight(_ sender: FormTextView) -> CGFloat {
         return maxRowHeight - valueViewInsets.top - valueViewInsets.bottom
     }
     
-    public func formTextViewShouldResignFirstResponder(sender: FormTextView) -> Bool {
+    open func formTextViewShouldResignFirstResponder(_ sender: FormTextView) -> Bool {
         return delegate?.formCellShouldResignFirstResponder?(self) ?? true
     }
 }
@@ -691,26 +711,26 @@ public extension String {
     
     public func isValidEmail() -> Bool {
         let regularExpression = try? NSRegularExpression(pattern: "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}", options: [])
-        let numberOfMatches = regularExpression?.numberOfMatchesInString(self, options: [], range: NSMakeRange(0, self.characters.count))
+        let numberOfMatches = regularExpression?.numberOfMatches(in: self, options: [], range: NSMakeRange(0, self.characters.count))
         return numberOfMatches > 0
     }
     
-    private func boundingRectHeightWithMaxWidth(maxWidth: CGFloat, font: UIFont) -> CGFloat {
+    fileprivate func boundingRectHeightWithMaxWidth(_ maxWidth: CGFloat, font: UIFont) -> CGFloat {
         let attributes: [String : AnyObject] = [NSFontAttributeName: font]
         return boundingRectHeightWithMaxWidth(maxWidth, attributes: attributes)
     }
     
-    private func boundingRectHeightWithMaxWidth(maxWidth: CGFloat, attributes: [String : AnyObject]) -> CGFloat {
-        let maxSize = CGSizeMake(maxWidth, CGFloat.max)
-        let rect = NSString(string: self).boundingRectWithSize(maxSize, options: .UsesLineFragmentOrigin, attributes: attributes, context: nil)
-        return CGRectGetHeight(rect)
+    fileprivate func boundingRectHeightWithMaxWidth(_ maxWidth: CGFloat, attributes: [String : AnyObject]) -> CGFloat {
+        let maxSize = CGSize(width: maxWidth, height: CGFloat.greatestFiniteMagnitude)
+        let rect = NSString(string: self).boundingRect(with: maxSize, options: .usesLineFragmentOrigin, attributes: attributes, context: nil)
+        return rect.height
     }
 }
 
-public class KeyboardAccessoryView: UIInputView {
+open class KeyboardAccessoryView: UIInputView {
     
     override init(frame: CGRect, inputViewStyle: UIInputViewStyle) {
-        super.init(frame: frame, inputViewStyle: UIInputViewStyle.Keyboard)
+        super.init(frame: frame, inputViewStyle: UIInputViewStyle.keyboard)
     }
     
     required public init?(coder aDecoder: NSCoder) {

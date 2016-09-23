@@ -10,58 +10,58 @@ import Foundation
 import UIKit
 import PureLayout
 
-public class FormTextInputTableViewCell: FormTableViewCell {
+open class FormTextInputTableViewCell: FormTableViewCell {
     
     public enum CharacterLabelAlignment {
-        case TopLeft
-        case TopRight
-        case BottomLeft
-        case BottomRight
+        case topLeft
+        case topRight
+        case bottomLeft
+        case bottomRight
     }
     
-    public var characterlimit: Int = 0 {
+    open var characterlimit: Int = 0 {
         didSet {
-            characterLabel.hidden = characterlimit == 0
+            characterLabel.isHidden = characterlimit == 0
             updateCharacterLabelWithCharacterCount(0)
         }
     }
     
-    var characterLabelAlignment: CharacterLabelAlignment = .BottomRight
+    var characterLabelAlignment: CharacterLabelAlignment = .bottomRight
     
-    var characterLabelValidTextColor = UIColor.lightGrayColor()
-    var characterLabelInvalidTextColor = UIColor.redColor()
+    var characterLabelValidTextColor = UIColor.lightGray
+    var characterLabelInvalidTextColor = UIColor.red
     
     var characterLabelInsets = UIEdgeInsetsMake(11, 120, 0, 16)
     
-    public lazy var characterLabel: UILabel = {
+    open lazy var characterLabel: UILabel = {
         let _characterLabel = UILabel(forAutoLayout: ())
-        _characterLabel.textAlignment = .Right
-        _characterLabel.hidden = true
+        _characterLabel.textAlignment = .right
+        _characterLabel.isHidden = true
         
         return _characterLabel
     }()
     
     lazy var characterLabelTopConstraint: NSLayoutConstraint = {
-        let _constraint = NSLayoutConstraint(item: self.characterLabel, attribute: .Top, relatedBy: .Equal, toItem: self.contentView, attribute: .Top, multiplier: 1.0, constant: 0.0)
+        let _constraint = NSLayoutConstraint(item: self.characterLabel, attribute: .top, relatedBy: .equal, toItem: self.contentView, attribute: .top, multiplier: 1.0, constant: 0.0)
         
         return _constraint
     }()
     
     lazy var characterLabelLeftConstraint: NSLayoutConstraint = {
-        let _constraint = NSLayoutConstraint(item: self.characterLabel, attribute: .Left, relatedBy: .Equal, toItem: self.contentView, attribute: .Left, multiplier: 1.0, constant: 0.0)
+        let _constraint = NSLayoutConstraint(item: self.characterLabel, attribute: .left, relatedBy: .equal, toItem: self.contentView, attribute: .left, multiplier: 1.0, constant: 0.0)
         
         return _constraint
     }()
     
     lazy var characterLabelBottomConstraint: NSLayoutConstraint = {
-        let _constraint = NSLayoutConstraint(item: self.characterLabel, attribute: .Bottom, relatedBy: .Equal, toItem: self.contentView, attribute: .Bottom, multiplier: 1.0, constant: 0.0)
+        let _constraint = NSLayoutConstraint(item: self.characterLabel, attribute: .bottom, relatedBy: .equal, toItem: self.contentView, attribute: .bottom, multiplier: 1.0, constant: 0.0)
         _constraint.priority = 750
         
         return _constraint
     }()
     
     lazy var characterLabelRightConstraint: NSLayoutConstraint = {
-        let _constraint = NSLayoutConstraint(item: self.characterLabel, attribute: .Right, relatedBy: .Equal, toItem: self.contentView, attribute: .Right, multiplier: 1.0, constant: 0.0)
+        let _constraint = NSLayoutConstraint(item: self.characterLabel, attribute: .right, relatedBy: .equal, toItem: self.contentView, attribute: .right, multiplier: 1.0, constant: 0.0)
         
         return _constraint
     }()
@@ -71,9 +71,9 @@ public class FormTextInputTableViewCell: FormTableViewCell {
     required public init(labelText: String?, identifier: String? = nil, configurations: [FormCellConfiguration]? = nil, delegate: FormTableViewCellDelegate?) {
         super.init(labelText: labelText, identifier: identifier, configurations: configurations, delegate: delegate)
         
-        valueTextView.hidden = true
+        valueTextView.isHidden = true
         
-        selectionStyle = .None
+        selectionStyle = .none
         contentView.clipsToBounds = true
         
         contentView.addSubview(characterLabel)
@@ -87,48 +87,48 @@ public class FormTextInputTableViewCell: FormTableViewCell {
     
     // MARK: - Super
     
-    public override func updateConstraints() {
+    open override func updateConstraints() {
         
         characterLabelTopConstraint.constant = characterLabelInsets.top
         characterLabelLeftConstraint.constant = characterLabelInsets.left
         characterLabelBottomConstraint.constant = -characterLabelInsets.bottom
         characterLabelRightConstraint.constant = -characterLabelInsets.right
         
-        if !characterLabel.hidden {
+        if !characterLabel.isHidden {
             switch characterLabelAlignment {
-            case .TopLeft:
-                NSLayoutConstraint.activateConstraints([characterLabelTopConstraint, characterLabelLeftConstraint])
-                NSLayoutConstraint.deactivateConstraints([characterLabelBottomConstraint, characterLabelRightConstraint])
-            case .TopRight:
-                NSLayoutConstraint.activateConstraints([characterLabelTopConstraint, characterLabelRightConstraint])
-                NSLayoutConstraint.deactivateConstraints([characterLabelLeftConstraint, characterLabelBottomConstraint])
-            case .BottomLeft:
-                NSLayoutConstraint.activateConstraints([characterLabelBottomConstraint, characterLabelLeftConstraint])
-                NSLayoutConstraint.deactivateConstraints([characterLabelTopConstraint, characterLabelRightConstraint])
-            case .BottomRight:
-                NSLayoutConstraint.activateConstraints([characterLabelBottomConstraint, characterLabelRightConstraint])
-                NSLayoutConstraint.deactivateConstraints([characterLabelTopConstraint, characterLabelLeftConstraint])
+            case .topLeft:
+                NSLayoutConstraint.activate([characterLabelTopConstraint, characterLabelLeftConstraint])
+                NSLayoutConstraint.deactivate([characterLabelBottomConstraint, characterLabelRightConstraint])
+            case .topRight:
+                NSLayoutConstraint.activate([characterLabelTopConstraint, characterLabelRightConstraint])
+                NSLayoutConstraint.deactivate([characterLabelLeftConstraint, characterLabelBottomConstraint])
+            case .bottomLeft:
+                NSLayoutConstraint.activate([characterLabelBottomConstraint, characterLabelLeftConstraint])
+                NSLayoutConstraint.deactivate([characterLabelTopConstraint, characterLabelRightConstraint])
+            case .bottomRight:
+                NSLayoutConstraint.activate([characterLabelBottomConstraint, characterLabelRightConstraint])
+                NSLayoutConstraint.deactivate([characterLabelTopConstraint, characterLabelLeftConstraint])
             }
         }
         
         super.updateConstraints()
     }
     
-    override public func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
-        super.touchesBegan(touches, withEvent: event)
+    override open func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesBegan(touches, with: event)
         becomeFirstResponder()
     }
 
     // MARK: - Methods
     
-    func updateCharacterLabelWithCharacterCount(count: Int) {
+    func updateCharacterLabelWithCharacterCount(_ count: Int) {
         if characterlimit > 0 {
             let remainingCharacters = characterlimit - count
             characterLabel.text = "\(remainingCharacters)"
             characterLabel.textColor = (remainingCharacters < 0) ? characterLabelInvalidTextColor : characterLabelValidTextColor
-            characterLabel.hidden = false
+            characterLabel.isHidden = false
         } else {
-            characterLabel.hidden = true
+            characterLabel.isHidden = true
         }
     }
     

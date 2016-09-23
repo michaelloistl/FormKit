@@ -9,19 +9,19 @@
 import Foundation
 import UIKit
 
-public class FormDatePickerTableViewCell: FormTextFieldTableViewCell {
+open class FormDatePickerTableViewCell: FormTextFieldTableViewCell {
     
-    public lazy var datePicker: UIDatePicker = {
+    open lazy var datePicker: UIDatePicker = {
         let _datePicker = UIDatePicker()
-        _datePicker.addTarget(self, action: #selector(datePickerDidChangeValue(_:)), forControlEvents: .ValueChanged)
+        _datePicker.addTarget(self, action: #selector(datePickerDidChangeValue(_:)), for: .valueChanged)
         
         return _datePicker
     }()
     
-    public lazy var dateFormatter: NSDateFormatter = {
-        let _dateFormatter = NSDateFormatter()
-        _dateFormatter.dateStyle = .MediumStyle
-        _dateFormatter.timeStyle = .NoStyle
+    open lazy var dateFormatter: DateFormatter = {
+        let _dateFormatter = DateFormatter()
+        _dateFormatter.dateStyle = .medium
+        _dateFormatter.timeStyle = .none
         
         return _dateFormatter
     }()
@@ -31,10 +31,10 @@ public class FormDatePickerTableViewCell: FormTextFieldTableViewCell {
     required public init(labelText: String?, identifier: String? = nil, configurations: [FormCellConfiguration]? = nil, delegate: FormTableViewCellDelegate?) {
         super.init(labelText: labelText, identifier: identifier, configurations: configurations, delegate: delegate)
         
-        selectionStyle = .None
+        selectionStyle = .none
         
         textField.inputView = datePicker
-        textField.tintColor = UIColor.clearColor()
+        textField.tintColor = UIColor.clear
         textField.inputAccessoryView = keyboardAccessoryView
     }
     
@@ -44,32 +44,32 @@ public class FormDatePickerTableViewCell: FormTextFieldTableViewCell {
     
     // MARK: IBACTION Methods
     
-    override public func pickerClearButtonTouchedUpInside(sender: UIButton) {
+    override open func pickerClearButtonTouchedUpInside(_ sender: UIButton) {
         value = nil
     }
     
-    override public func pickerDoneButtonTouchedUpInside(sender: UIButton) {
+    override open func pickerDoneButtonTouchedUpInside(_ sender: UIButton) {
         textField.resignFirstResponder()
     }
     
     // MARK: Methods
         
-    func datePickerDidChangeValue(datePicker: UIDatePicker) {
-        value = datePicker.date
+    func datePickerDidChangeValue(_ datePicker: UIDatePicker) {
+        value = datePicker.date as AnyObject?
     }
     
     // MARK: FormTableViewCellProtocol
     
-    override public func updateUI() {
-        if let dateValue = value as? NSDate {
+    override open func updateUI() {
+        if let dateValue = value as? Date {
             datePicker.date = dateValue
-            textField.text = dateFormatter.stringFromDate(dateValue)
+            textField.text = dateFormatter.string(from: dateValue)
         } else {
             textField.text = nil
         }
     }
     
-    override public func isEmpty() -> Bool {
+    override open func isEmpty() -> Bool {
         if let textFieldText = textField.text {
             return textFieldText.characters.count == 0
         }

@@ -9,42 +9,42 @@
 import Foundation
 import UIKit
 
-public class FormTextFieldTableViewCell: FormTextInputTableViewCell, UITextFieldDelegate, FormTextFieldDataSource {
+open class FormTextFieldTableViewCell: FormTextInputTableViewCell, UITextFieldDelegate, FormTextFieldDataSource {
     
-    public var returnKeyAction: FormCellActionClosure?
+    open var returnKeyAction: FormCellActionClosure?
     
-    public lazy var textField: FormTextField = {
+    open lazy var textField: FormTextField = {
         let _textField = FormTextField(forAutoLayout: ())
         _textField.delegate = self
         _textField.dataSource = self
-        _textField.addTarget(self, action: #selector(textFieldDidChange(_:)), forControlEvents: .EditingChanged)
-        _textField.backgroundColor = UIColor.clearColor()
-        _textField.returnKeyType = .Next
+        _textField.addTarget(self, action: #selector(textFieldDidChange(_:)), for: .editingChanged)
+        _textField.backgroundColor = UIColor.clear
+        _textField.returnKeyType = .next
         
         return _textField
     }()
     
     lazy var textFieldTopConstraint: NSLayoutConstraint = {
-        let _constraint = NSLayoutConstraint(item: self.textField, attribute: .Top, relatedBy: .Equal, toItem: self.contentView, attribute: .Top, multiplier: 1.0, constant: 0.0)
+        let _constraint = NSLayoutConstraint(item: self.textField, attribute: .top, relatedBy: .equal, toItem: self.contentView, attribute: .top, multiplier: 1.0, constant: 0.0)
         
         return _constraint
     }()
     
     lazy var textFieldLeftConstraint: NSLayoutConstraint = {
-        let _constraint = NSLayoutConstraint(item: self.textField, attribute: .Left, relatedBy: .Equal, toItem: self.contentView, attribute: .Left, multiplier: 1.0, constant: 0.0)
+        let _constraint = NSLayoutConstraint(item: self.textField, attribute: .left, relatedBy: .equal, toItem: self.contentView, attribute: .left, multiplier: 1.0, constant: 0.0)
         
         return _constraint
     }()
     
     lazy var textFieldBottomConstraint: NSLayoutConstraint = {
-        let _constraint = NSLayoutConstraint(item: self.textField, attribute: .Bottom, relatedBy: .Equal, toItem: self.contentView, attribute: .Bottom, multiplier: 1.0, constant: 0.0)
+        let _constraint = NSLayoutConstraint(item: self.textField, attribute: .bottom, relatedBy: .equal, toItem: self.contentView, attribute: .bottom, multiplier: 1.0, constant: 0.0)
         _constraint.priority = 750
         
         return _constraint
     }()
     
     lazy var textFieldRightConstraint: NSLayoutConstraint = {
-        let _constraint = NSLayoutConstraint(item: self.textField, attribute: .Right, relatedBy: .Equal, toItem: self.contentView, attribute: .Right, multiplier: 1.0, constant: 0.0)
+        let _constraint = NSLayoutConstraint(item: self.textField, attribute: .right, relatedBy: .equal, toItem: self.contentView, attribute: .right, multiplier: 1.0, constant: 0.0)
         
         return _constraint
     }()
@@ -54,7 +54,7 @@ public class FormTextFieldTableViewCell: FormTextInputTableViewCell, UITextField
     required public init(labelText: String?, identifier: String? = nil, configurations: [FormCellConfiguration]? = nil, delegate: FormTableViewCellDelegate?) {
         super.init(labelText: labelText, identifier: identifier, configurations: configurations, delegate: delegate)
         
-        contentView.insertSubview(textField, atIndex: 0)
+        contentView.insertSubview(textField, at: 0)
         
         contentView.addConstraints([textFieldTopConstraint, textFieldLeftConstraint, textFieldBottomConstraint, textFieldRightConstraint])
     }
@@ -65,19 +65,19 @@ public class FormTextFieldTableViewCell: FormTextInputTableViewCell, UITextField
     
     // MARK: - Super
     
-    override public func isFirstResponder() -> Bool {
-        return textField.isFirstResponder()
+    override open var isFirstResponder : Bool {
+        return textField.isFirstResponder
     }
     
-    override public func becomeFirstResponder() -> Bool {
+    override open func becomeFirstResponder() -> Bool {
         return textField.becomeFirstResponder()
     }
     
-    override public func resignFirstResponder() -> Bool {
+    override open func resignFirstResponder() -> Bool {
         return textField.resignFirstResponder()
     }
     
-    public override func updateConstraints() {
+    open override func updateConstraints() {
         
         textFieldTopConstraint.constant = valueViewInsets.top
         textFieldLeftConstraint.constant = valueViewInsets.left
@@ -87,23 +87,23 @@ public class FormTextFieldTableViewCell: FormTextInputTableViewCell, UITextField
         super.updateConstraints()
     }
     
-    override public func layoutSubviews() {
+    override open func layoutSubviews() {
         super.layoutSubviews()
 
-        textField.userInteractionEnabled = editable
+        textField.isUserInteractionEnabled = editable
     }
     
     // MARK: - Methods
     
-    override public func valueView() -> UIView {
+    override open func valueView() -> UIView {
         return textField
     }
     
-    override public func updateUI() {
+    override open func updateUI() {
         textField.text = value as? String
     }
     
-    override public func isEmpty() -> Bool {
+    override open func isEmpty() -> Bool {
         if let textFieldText = textField.text {
             return textFieldText.characters.count == 0
         }
@@ -114,41 +114,41 @@ public class FormTextFieldTableViewCell: FormTextInputTableViewCell, UITextField
     
     // MARK: UITextFieldDelegate
     
-    public func textFieldShouldReturn(textField: UITextField) -> Bool {
-        if textField.returnKeyType == .Next {
+    open func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        if textField.returnKeyType == .next {
             nextFormTableViewCell()
         } else {
-            returnKeyAction?(cell: self, value: value)
+            returnKeyAction?(self, value)
         }
         
         return true
     }
     
-    public func textFieldDidChange(textField: UITextField) {
-        value = textField.text
+    open func textFieldDidChange(_ textField: UITextField) {
+        value = textField.text as AnyObject?
         updateCharacterLabelWithCharacterCount(textField.text?.characters.count ?? 0)
     }
     
-    public func textFieldShouldBeginEditing(textField: UITextField) -> Bool {
+    open func textFieldShouldBeginEditing(_ textField: UITextField) -> Bool {
         return editable
     }
     
-    public func textField(textField: UITextField, shouldChangeCharactersInRange range: NSRange, replacementString string: String) -> Bool {
+    open func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
         return delegate?.formCell?(self, shouldChangeCharactersInRange: range, replacementString: string) ?? true
     }
     
-    public func textFieldDidBeginEditing(textField: UITextField) {
+    open func textFieldDidBeginEditing(_ textField: UITextField) {
         errorState = false
         delegate?.formCell?(self, didBecomeFirstResponder: textField)
     }
     
-    public func textFieldDidEndEditing(textField: UITextField) {
+    open func textFieldDidEndEditing(_ textField: UITextField) {
         delegate?.formCell?(self, didResignFirstResponder: textField)
     }
     
     // MARK: FormTextFieldDataSource
     
-    public func formTextFieldShouldResignFirstResponder(sender: FormTextField) -> Bool {
+    open func formTextFieldShouldResignFirstResponder(_ sender: FormTextField) -> Bool {
         return delegate?.formCellShouldResignFirstResponder?(self) ?? true
     }
 }

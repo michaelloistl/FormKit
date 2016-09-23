@@ -1,18 +1,12 @@
 PODS:
   - PureLayout (3.0.1)
-  - Realm (0.96.3):
-    - Realm/Headers (= 0.96.3)
-  - Realm/Headers (0.96.3)
-  - RealmSwift (0.96.3):
-    - Realm (= 0.96.3)
 
 DEPENDENCIES:
   - PureLayout
-  - RealmSwift
 
 SPEC CHECKSUMS:
   PureLayout: f35f5384c9c4e4479df041dbe33ad7577b71ddfb
-  Realm: 145d3cdf78a03aee71bde5381ad7e542bd541720
-  RealmSwift: aab84968aad662f61f36473d1aea019f63481505
 
-COCOAPODS: 0.39.0
+PODFILE CHECKSUM: 1b7389aa5225b1c0f0b454dcfee1ee19302ab998
+
+COCOAPODS: 1.0.1

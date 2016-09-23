@@ -9,36 +9,36 @@
 import Foundation
 import UIKit
 
-public class FormButtonTableViewCell: FormTableViewCell {
+open class FormButtonTableViewCell: FormTableViewCell {
     
-    public lazy var button: UIButton = {
+    open lazy var button: UIButton = {
         let _button = UIButton(forAutoLayout: ())
-        _button.addTarget(self, action: #selector(buttonTouchedUpInside(_:)), forControlEvents: .TouchUpInside)
-        _button.setTitleColor(UIColor.blackColor(), forState: .Normal)
+        _button.addTarget(self, action: #selector(buttonTouchedUpInside(_:)), for: .touchUpInside)
+        _button.setTitleColor(UIColor.black, for: UIControlState())
         
         return _button
     }()
     
     lazy var buttonTopConstraint: NSLayoutConstraint = {
-        let _constraint = NSLayoutConstraint(item: self.button, attribute: .Top, relatedBy: .Equal, toItem: self.contentView, attribute: .Top, multiplier: 1.0, constant: 0.0)
+        let _constraint = NSLayoutConstraint(item: self.button, attribute: .top, relatedBy: .equal, toItem: self.contentView, attribute: .top, multiplier: 1.0, constant: 0.0)
         
         return _constraint
     }()
     
     lazy var buttonLeftConstraint: NSLayoutConstraint = {
-        let _constraint = NSLayoutConstraint(item: self.button, attribute: .Left, relatedBy: .Equal, toItem: self.contentView, attribute: .Left, multiplier: 1.0, constant: 0.0)
+        let _constraint = NSLayoutConstraint(item: self.button, attribute: .left, relatedBy: .equal, toItem: self.contentView, attribute: .left, multiplier: 1.0, constant: 0.0)
         
         return _constraint
     }()
     
     lazy var buttonBottomConstraint: NSLayoutConstraint = {
-        let _constraint = NSLayoutConstraint(item: self.button, attribute: .Bottom, relatedBy: .Equal, toItem: self.contentView, attribute: .Bottom, multiplier: 1.0, constant: 0.0)
+        let _constraint = NSLayoutConstraint(item: self.button, attribute: .bottom, relatedBy: .equal, toItem: self.contentView, attribute: .bottom, multiplier: 1.0, constant: 0.0)
         
         return _constraint
     }()
     
     lazy var buttonRightConstraint: NSLayoutConstraint = {
-        let _constraint = NSLayoutConstraint(item: self.button, attribute: .Right, relatedBy: .Equal, toItem: self.contentView, attribute: .Right, multiplier: 1.0, constant: 0.0)
+        let _constraint = NSLayoutConstraint(item: self.button, attribute: .right, relatedBy: .equal, toItem: self.contentView, attribute: .right, multiplier: 1.0, constant: 0.0)
         
         return _constraint
     }()
@@ -48,8 +48,8 @@ public class FormButtonTableViewCell: FormTableViewCell {
     required public init(labelText: String?, identifier: String? = nil, configurations: [FormCellConfiguration]? = nil, delegate: FormTableViewCellDelegate?) {
         super.init(labelText: labelText, identifier: identifier, configurations: configurations, delegate: delegate)
         
-        valueTextView.hidden = true
-        selectionStyle = .None
+        valueTextView.isHidden = true
+        selectionStyle = .none
         
         contentView.addSubview(button)
         
@@ -62,7 +62,7 @@ public class FormButtonTableViewCell: FormTableViewCell {
     
     // MARK: - Super
     
-    public override func updateConstraints() {
+    open override func updateConstraints() {
         
         buttonTopConstraint.constant = buttonInsets.top
         buttonLeftConstraint.constant = buttonInsets.left
@@ -74,17 +74,17 @@ public class FormButtonTableViewCell: FormTableViewCell {
     
     // MARK: - Methods
     
-    override public func valueView() -> UIView {
+    override open func valueView() -> UIView {
         return button
     }
     
     // MARK: Actions
     
-    func buttonTouchedUpInside(sender: UIButton) {
+    func buttonTouchedUpInside(_ sender: UIButton) {
         delegate?.formCell?(self, didTouchUpInsideButton: sender)
         
         if let action = action {
-            action(cell: self, value: value)
+            action(self, value)
         }
     }
 }
