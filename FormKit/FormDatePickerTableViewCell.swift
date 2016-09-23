@@ -49,7 +49,7 @@ open class FormDatePickerTableViewCell: FormTextFieldTableViewCell {
     }
     
     override open func pickerDoneButtonTouchedUpInside(_ sender: UIButton) {
-        textField.resignFirstResponder()
+        let _ = textField.resignFirstResponder()
     }
     
     // MARK: Methods

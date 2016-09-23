@@ -80,7 +80,7 @@ open class FormSelectionTableViewController: UITableViewController  {
         tableView.reloadData()
 
         if !allowsMultipleSelection {
-            navigationController?.popViewController(animated: true)
+            let _ = navigationController?.popViewController(animated: true)
         }
     }
     
@@ -124,7 +124,7 @@ open class FormSelectionTableViewController: UITableViewController  {
             clearBarButtonItem.isEnabled = selectedIndexPath.count > 0
             tableView.reloadRows(at: [indexPath], with: .none)
         } else {
-            navigationController?.popViewController(animated: true)
+            let _ = navigationController?.popViewController(animated: true)
         }
     }
     

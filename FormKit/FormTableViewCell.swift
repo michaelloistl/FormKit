@@ -193,7 +193,7 @@ open class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
         
         didSet {
             if visible != oldValue {
-                resignFirstResponder()
+                let _ = resignFirstResponder()
                 
                 if let formManager = formManager {
                     formManager.updateVisibleFormSections()

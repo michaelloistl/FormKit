@@ -168,7 +168,7 @@ open class FormViewController: UIViewController, UITableViewDataSource, UITableV
     }
     
     open func tableView(_ tableView: UITableView, estimatedHeightForRowAt indexPath: IndexPath) -> CGFloat {
-        return formManager.heightForRowAtIndexPath(indexPath) ?? 44
+        return formManager.heightForRowAtIndexPath(indexPath)
     }
     
     // MARK: FormManagerDelegate {
@@ -251,7 +251,7 @@ open class FormViewController: UIViewController, UITableViewDataSource, UITableV
                 
                 let completelyVisible = visibleTableViewRect.contains(cellRect)
                 
-                nextFormCell.becomeFirstResponder()
+                let _ = nextFormCell.becomeFirstResponder()
                 
                 if !completelyVisible {
                     tableView.scrollToRow(at: indexPath, at: .bottom, animated: true)
@@ -280,7 +280,7 @@ open class FormViewController: UIViewController, UITableViewDataSource, UITableV
     
     open func formSelectionTableViewController(_ sender: FormSelectionTableViewController, didSelectObjects objects: [AnyObject], withFormTableViewCellIdentifier identifier: String?) {
         if let identifier = identifier, let formCell = formManager.formCellWithIdentifier(identifier) {
-            formCell.value = objects
+            formCell.value = objects as AnyObject
         }
     }
     

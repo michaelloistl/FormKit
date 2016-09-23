@@ -116,7 +116,7 @@ open class FormTextInputTableViewCell: FormTableViewCell {
     
     override open func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         super.touchesBegan(touches, with: event)
-        becomeFirstResponder()
+        let _ = becomeFirstResponder()
     }
 
     // MARK: - Methods

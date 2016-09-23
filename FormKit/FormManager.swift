@@ -117,7 +117,7 @@ open class FormManager: NSObject {
         beginReloadTransaction()
         
         for formCell in allVisibleFormCells() {
-            formCell.setValue()
+            let _ = formCell.setValue()
         }
         
         endReloadTransaction()
@@ -172,7 +172,7 @@ open class FormManager: NSObject {
     
     open func formResignFirstResponder() {
         for cell in allVisibleFormCells() {
-            cell.resignFirstResponder()
+            let _ = cell.resignFirstResponder()
         }
     }
     
@@ -241,6 +241,6 @@ open class FormManager: NSObject {
     
     open func heightForRowAtIndexPath(_ indexPath: IndexPath) -> CGFloat {
         let formCell = cellForRowAtIndexPath(indexPath)
-        return formCell.rowHeight() ?? 44.0
+        return formCell.rowHeight() 
     }
 }
