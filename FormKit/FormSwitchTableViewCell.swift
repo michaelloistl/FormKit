@@ -13,7 +13,7 @@ public class FormSwitchTableViewCell: FormTableViewCell {
     
     public lazy var switchView: UISwitch = {
         let _switchView = UISwitch(forAutoLayout: ())
-        _switchView.addTarget(self, action: #selector(FormSwitchTableViewCell.switchDidChangeValue(_:)), forControlEvents: .ValueChanged)
+        _switchView.addTarget(self, action: #selector(switchDidChangeValue(_:)), forControlEvents: .ValueChanged)
         
         return _switchView
     }()
@@ -34,7 +34,7 @@ public class FormSwitchTableViewCell: FormTableViewCell {
         contentView.addSubview(switchView)
         
         contentView.addConstraint(switchViewRightConstraint)
-        switchView.autoAlignAxis(.Horizontal, toSameAxisOfView: contentView)
+        switchView.autoAlignAxis(.Horizontal, toSameAxisOfView: label)
     }
     
     required public init?(coder aDecoder: NSCoder) {

@@ -13,7 +13,7 @@ public class FormDatePickerTableViewCell: FormTextFieldTableViewCell {
     
     public lazy var datePicker: UIDatePicker = {
         let _datePicker = UIDatePicker()
-        _datePicker.addTarget(self, action: #selector(FormDatePickerTableViewCell.datePickerDidChangeValue(_:)), forControlEvents: .ValueChanged)
+        _datePicker.addTarget(self, action: #selector(datePickerDidChangeValue(_:)), forControlEvents: .ValueChanged)
         
         return _datePicker
     }()

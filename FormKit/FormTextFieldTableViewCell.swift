@@ -11,13 +11,13 @@ import UIKit
 
 public class FormTextFieldTableViewCell: FormTextInputTableViewCell, UITextFieldDelegate, FormTextFieldDataSource {
     
-    public var returnKeyAction: FormCellAction?
+    public var returnKeyAction: FormCellActionClosure?
     
     public lazy var textField: FormTextField = {
         let _textField = FormTextField(forAutoLayout: ())
         _textField.delegate = self
         _textField.dataSource = self
-        _textField.addTarget(self, action: #selector(FormTextFieldTableViewCell.textFieldDidChange(_:)), forControlEvents: .EditingChanged)
+        _textField.addTarget(self, action: #selector(textFieldDidChange(_:)), forControlEvents: .EditingChanged)
         _textField.backgroundColor = UIColor.clearColor()
         _textField.returnKeyType = .Next
         
@@ -118,7 +118,7 @@ public class FormTextFieldTableViewCell: FormTextInputTableViewCell, UITextField
         if textField.returnKeyType == .Next {
             nextFormTableViewCell()
         } else {
-            returnKeyAction?.closure(value: value)
+            returnKeyAction?(cell: self, value: value)
         }
         
         return true
@@ -131,6 +131,10 @@ public class FormTextFieldTableViewCell: FormTextInputTableViewCell, UITextField
     
     public func textFieldShouldBeginEditing(textField: UITextField) -> Bool {
         return editable
+    }
+    
+    public func textField(textField: UITextField, shouldChangeCharactersInRange range: NSRange, replacementString string: String) -> Bool {
+        return delegate?.formCell?(self, shouldChangeCharactersInRange: range, replacementString: string) ?? true
     }
     
     public func textFieldDidBeginEditing(textField: UITextField) {

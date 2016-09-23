@@ -60,7 +60,7 @@ public class FormTextView: UITextView {
         textContainer?.lineFragmentPadding = 0
         textContainerInset = UIEdgeInsetsZero
         
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(FormTextView.handleTextViewTextDidChangeNotification(_:)), name: UITextViewTextDidChangeNotification, object: nil)
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(handleTextViewTextDidChangeNotification(_:)), name: UITextViewTextDidChangeNotification, object: nil)
         
         placeHolderLabel.autoPinEdgesToSuperviewEdgesWithInsets(UIEdgeInsetsZero, excludingEdge: .Bottom)
     }

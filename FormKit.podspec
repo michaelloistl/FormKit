@@ -16,5 +16,5 @@ Pod::Spec.new do |s|
     s.requires_arc = true
 
     s.dependency 'PureLayout', '~> 3.0'
-    s.dependency 'RealmSwift', '~> 0.97'
+    s.dependency 'RealmSwift', '~> 1.0'
 end

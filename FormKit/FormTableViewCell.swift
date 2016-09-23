@@ -10,6 +10,8 @@ import Foundation
 import UIKit
 import PureLayout
 
+public typealias FormCellActionClosure = (cell: FormTableViewCell, value: AnyObject?) -> ()
+
 // TODO: Clean up FormTableViewCellProtocol to keep only vars and funcs that are required due to dependencies
 
 @objc public protocol FormTableViewCellDelegate {
@@ -22,6 +24,8 @@ import PureLayout
     optional func formCell(sender: FormTableViewCell, didTouchUpInsideButton button: UIButton)
     optional func formCellShouldResignFirstResponder(sender: FormTableViewCell) -> Bool
     optional func formCell(sender: FormTableViewCell, shouldValidateWithIdentifier validationIdentifier: String?) -> Bool
+    
+    optional func formCell(sender: FormTextFieldTableViewCell, shouldChangeCharactersInRange range: NSRange, replacementString string: String) -> Bool
 }
 
 public struct FormCellConfiguration {
@@ -94,19 +98,6 @@ public struct FormCellValidation {
     }
 }
 
-public struct FormCellAction {
-
-    public typealias ActionClosure = (value: AnyObject?) -> Void
-    
-    public let closure: ActionClosure
-    
-    // MARK: - Initializers
-    
-    public init(closure: ActionClosure) {
-        self.closure = closure
-    }
-}
-
 /**
  A structure that contains closures to set, get and write a cell value
  
@@ -120,13 +111,13 @@ public struct FormCellDataSource {
     
     public typealias SetFormCellValueClosure = () -> AnyObject?
     public typealias GetFormCellValueClosure = (value: AnyObject?) -> AnyObject?
-    public typealias DidChangeFormCellValueClosure = (value: AnyObject?) -> Void
+    public typealias DidChangeFormCellValueClosure = (oldValue: AnyObject?, newValue: AnyObject?) -> Void
     public typealias WriteObjectValueClosure = (value: AnyObject?) -> Void
 
-    let setFormCellValue: SetFormCellValueClosure
-    let getFormCellValue: GetFormCellValueClosure?
-    let didChangeFormCellValue: DidChangeFormCellValueClosure?
-    let writeObjectValue: WriteObjectValueClosure?
+    public let setFormCellValue: SetFormCellValueClosure
+    public let getFormCellValue: GetFormCellValueClosure?
+    public let didChangeFormCellValue: DidChangeFormCellValueClosure?
+    public let writeObjectValue: WriteObjectValueClosure?
     
     // MARK: - Initializers
     
@@ -150,10 +141,10 @@ public class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
         didSet {
             updateUI()
             
-            valueDataSource?.didChangeFormCellValue?(value: value)
-            
             delegate?.formCell?(self, didChangeValue: value)
-        
+            
+            valueDataSource?.didChangeFormCellValue?(oldValue: oldValue, newValue: value)
+            
             cachedRowSize = CGSizeMake(CGRectGetWidth(bounds), self.rowHeight())
             
             updateConstraints()
@@ -217,8 +208,6 @@ public class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
     
     public var validations = [FormCellValidation]()
     
-    public var actions = [FormCellAction]()
-    
     public var valueDataSource: FormCellDataSource?
     
     public var labelInsets = UIEdgeInsetsMake(0, 16, 0, 16)
@@ -227,7 +216,7 @@ public class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
     
     public var buttonInsets = UIEdgeInsetsZero
     
-    public var bottomLineInsets = UIEdgeInsetsMake(0, 16, 0, 0)
+    public var bottomLineInsets = UIEdgeInsetsMake(0, 16, 0, 100)
     
     public var bottomLineWidth: CGFloat = 0
     
@@ -247,6 +236,8 @@ public class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
     
     public var labelVerticallyCentered = true
     
+    public var action: FormCellActionClosure?
+    
     public lazy var keyboardAccessoryView: KeyboardAccessoryView = {
         let _keyboardAccessoryView = KeyboardAccessoryView(frame: CGRectMake(0, 0, CGRectGetWidth(self.contentView.bounds), 44))
         _keyboardAccessoryView.addSubview(self.pickerClearButton)
@@ -259,7 +250,7 @@ public class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
         let _pickerDoneButton = UIButton(type: .System)
         _pickerDoneButton.translatesAutoresizingMaskIntoConstraints = false
         _pickerDoneButton.setTitle("Done", forState: .Normal)
-        _pickerDoneButton.addTarget(self, action: #selector(FormTableViewCell.pickerDoneButtonTouchedUpInside(_:)), forControlEvents: .TouchUpInside)
+        _pickerDoneButton.addTarget(self, action: #selector(pickerDoneButtonTouchedUpInside(_:)), forControlEvents: .TouchUpInside)
         
         return _pickerDoneButton
         }()
@@ -268,7 +259,7 @@ public class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
         let _pickerClearButton = UIButton(type: .System)
         _pickerClearButton.translatesAutoresizingMaskIntoConstraints = false
         _pickerClearButton.setTitle("Clear", forState: .Normal)
-        _pickerClearButton.addTarget(self, action: #selector(FormTableViewCell.pickerClearButtonTouchedUpInside(_:)), forControlEvents: .TouchUpInside)
+        _pickerClearButton.addTarget(self, action: #selector(pickerClearButtonTouchedUpInside(_:)), forControlEvents: .TouchUpInside)
         
         return _pickerClearButton
         }()
@@ -502,21 +493,23 @@ public class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
         } else {
             if let stringArray = value as? [String] {
                 return stringArray.joinWithSeparator(", ")
-            } else if let array = value as? [AnyObject] {
-                var selectableObjects = [FormSelectable]()
-                for object in array {
-                    if let object = object as? FormSelectable {
-                        selectableObjects.append(object)
-                    }
-                }
-                
-                if selectableObjects.count > 0 {
-                    let stringArray = selectableObjects.map({ $0.stringValue() })
-                    return stringArray.joinWithSeparator(", ")
-                }
-                
-                return "\(array.count)"
-            } else if let string = value as? String {
+            }
+//            else if let array = value as? [AnyObject] {
+//                var selectableObjects = [FormSelectable]()
+//                for object in array {
+//                    if let object = object as? FormSelectable {
+//                        selectableObjects.append(object)
+//                    }
+//                }
+//                
+//                if selectableObjects.count > 0 {
+//                    let stringArray = selectableObjects.map({ $0.stringValue() })
+//                    return stringArray.joinWithSeparator(", ")
+//                }
+//                
+//                return "\(array.count)"
+//            }
+            else if let string = value as? String {
                 return string
             } else if let number = value as? NSNumber {
                 return number.stringValue
@@ -568,21 +561,6 @@ public class FormTableViewCell: UITableViewCell, FormTextViewDataSource {
     
     public func pickerDoneButtonTouchedUpInside(sender: UIButton) {
         
-    }
-    
-    // MARK: FormCellAction
-    
-    public func removeAllActions() {
-        actions.removeAll()
-    }
-
-    public func addAction(action: FormCellAction) {
-        actions.append(action)
-    }
-    
-    public func addAction(action: FormCellAction.ActionClosure) {
-        let action = FormCellAction(closure: action)
-        addAction(action)
     }
     
     // MARK: FormCellConfiguration

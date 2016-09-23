@@ -13,6 +13,14 @@ public class FormTextViewTableViewCell: FormTextInputTableViewCell, NSLayoutMana
     
     public var allowLineBreak = true
     
+    public var placeholder: String? {
+        didSet {
+            placeholderLabel.text = placeholder
+        }
+    }
+    
+    var placeholderLabelOffset = UIOffsetZero
+    
     var textViewWidth: CGFloat {
         return CGRectGetWidth(contentView.bounds) - valueViewInsets.left - valueViewInsets.right
     }
@@ -33,6 +41,14 @@ public class FormTextViewTableViewCell: FormTextInputTableViewCell, NSLayoutMana
         _textView.textContainer.lineFragmentPadding = 0
 
         return _textView
+    }()
+    
+    public lazy var placeholderLabel: UILabel = {
+        let _label = UILabel(forAutoLayout: ())
+        _label.font = self.textLabel?.font
+        _label.textColor = UIColor.lightGrayColor()
+        
+        return _label
     }()
     
     lazy var textViewTopConstraint: NSLayoutConstraint = {
@@ -60,6 +76,18 @@ public class FormTextViewTableViewCell: FormTextInputTableViewCell, NSLayoutMana
         return _constraint
     }()
     
+    lazy var placeholderLabelTopConstraint: NSLayoutConstraint = {
+        let _constraint = NSLayoutConstraint(item: self.placeholderLabel, attribute: .Top, relatedBy: .Equal, toItem: self.contentView, attribute: .Top, multiplier: 1.0, constant: 0.0)
+        
+        return _constraint
+    }()
+    
+    lazy var placeholderLabelLeftConstraint: NSLayoutConstraint = {
+        let _constraint = NSLayoutConstraint(item: self.placeholderLabel, attribute: .Left, relatedBy: .Equal, toItem: self.contentView, attribute: .Left, multiplier: 1.0, constant: 0.0)
+        
+        return _constraint
+    }()
+    
     // MARK: Initializers
     
     required public init(labelText: String?, identifier: String? = nil, configurations: [FormCellConfiguration]? = nil, delegate: FormTableViewCellDelegate?) {
@@ -68,8 +96,10 @@ public class FormTextViewTableViewCell: FormTextInputTableViewCell, NSLayoutMana
         maxRowHeight = 88.0
         
         contentView.insertSubview(textView, atIndex: 0)
+        contentView.insertSubview(placeholderLabel, atIndex: 0)
         
         contentView.addConstraints([textViewTopConstraint, textViewLeftConstraint, textViewBottomConstraint, textViewRightConstraint])
+        contentView.addConstraints([placeholderLabelTopConstraint, placeholderLabelLeftConstraint])
     }
     
     required public init?(coder aDecoder: NSCoder) {
@@ -96,6 +126,9 @@ public class FormTextViewTableViewCell: FormTextInputTableViewCell, NSLayoutMana
         textViewLeftConstraint.constant = valueViewInsets.left
         textViewBottomConstraint.constant = -valueViewInsets.bottom
         textViewRightConstraint.constant = -valueViewInsets.right
+        
+        placeholderLabelTopConstraint.constant = valueViewInsets.top + placeholderLabelOffset.vertical
+        placeholderLabelLeftConstraint.constant = valueViewInsets.left + placeholderLabelOffset.horizontal
         
         super.updateConstraints()
     }
@@ -133,6 +166,8 @@ public class FormTextViewTableViewCell: FormTextInputTableViewCell, NSLayoutMana
         value = textView.text
 
         updateCharacterLabelWithCharacterCount(textView.text?.characters.count ?? 0)
+        
+        placeholderLabel.hidden = !textView.text.isEmpty
     }
     
     public func textViewShouldBeginEditing(textView: UITextView) -> Bool {

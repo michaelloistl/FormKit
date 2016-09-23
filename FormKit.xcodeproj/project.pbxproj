@@ -145,11 +145,11 @@
 			children = (
 				6ADE2B9E1BCD5A6000A7AB6A /* FormKit.h */,
 				6ADA25111BDFD1FD00D951DB /* FormManager.swift */,
-				6ADA25121BDFD1FD00D951DB /* FormSelectionTableViewController.swift */,
 				6AC7D15E1C428DDA00D7409E /* Classes */,
 				6AA979751BF767A9007EC8DB /* FormTableViewCells */,
 				6ADA25141BDFD1FD00D951DB /* FormValueTransformer.swift */,
 				6ADA25151BDFD1FD00D951DB /* FormViewController.swift */,
+				6ADA25121BDFD1FD00D951DB /* FormSelectionTableViewController.swift */,
 				6ADA25101BDFD1ED00D951DB /* Supporting Files */,
 			);
 			path = FormKit;

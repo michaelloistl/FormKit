@@ -11,7 +11,7 @@ import UIKit
 
 public class FormViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, FormManagerDelegate, FormTableViewCellDelegate, FormSelectionTableViewControllerDelegate {
     
-    private var tableViewStyle: UITableViewStyle = .Grouped
+    public var tableViewStyle: UITableViewStyle = .Grouped
     
     public var animateRowHeightChanges = false
     public var animateRowVisibilityChanges = false
@@ -109,22 +109,14 @@ public class FormViewController: UIViewController, UITableViewDataSource, UITabl
     }
     
     public func didSelectFormCell(sender: FormTableViewCell) {
-        if sender.actions.count > 0 {
-            for action in sender.actions {
-                action.closure(value: sender.value)
-            }
+        if let action = sender.action {
+            action(cell: sender, value: sender.value)
         } else if let formSelectionCell = sender as? FormSelectionTableViewCell where formSelectionCell.editable {
             let viewController = FormSelectionTableViewController()
             viewController.allowsMultipleSelection = formSelectionCell.allowsMultipleSelection
-            viewController.formTableViewCellIdentifier = sender.identifier
-            viewController.delegate = self
-
-            if let selectionDataSource = formSelectionCell.selectionDataSource {
-                viewController.selectionObjects = selectionDataSource.selectionObjectsClosure(value: formSelectionCell.value)
-                viewController.selectedObjects = selectionDataSource.selectedObjectsClosure(value: formSelectionCell.value)
-            }
+            viewController.formSelectionTableViewCell = formSelectionCell
             
-            if let title = formSelectionCell.selectionTitle {
+            if let title = formSelectionCell.title {
                 viewController.title = title
             } else if let label = formSelectionCell.label.text {
                 viewController.title = "Select \(label)"
@@ -277,6 +269,10 @@ public class FormViewController: UIViewController, UITableViewDataSource, UITabl
     }
     
     public func formCell(sender: FormTableViewCell, shouldValidateWithIdentifier validationIdentifier: String?) -> Bool {
+        return true
+    }
+    
+    public func formCell(sender: FormTextFieldTableViewCell, shouldChangeCharactersInRange range: NSRange, replacementString string: String) -> Bool {
         return true
     }
     

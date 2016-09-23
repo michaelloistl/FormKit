@@ -51,6 +51,19 @@ public class FormManager: NSObject {
         }
     }
     
+    public var firstResponderCell: FormTableViewCell? {
+        var firstResponderCell: FormTableViewCell?
+        
+        for cell in allFormCells() {
+            if cell.isFirstResponder() {
+                firstResponderCell = cell
+                break
+            }
+        }
+        
+        return firstResponderCell
+    }
+    
     // MARK: - Initializers
     
     // MARK: - Methods

@@ -13,7 +13,7 @@ public class FormButtonTableViewCell: FormTableViewCell {
     
     public lazy var button: UIButton = {
         let _button = UIButton(forAutoLayout: ())
-        _button.addTarget(self, action: #selector(FormButtonTableViewCell.buttonTouchedUpInside(_:)), forControlEvents: .TouchUpInside)
+        _button.addTarget(self, action: #selector(buttonTouchedUpInside(_:)), forControlEvents: .TouchUpInside)
         _button.setTitleColor(UIColor.blackColor(), forState: .Normal)
         
         return _button
@@ -83,8 +83,8 @@ public class FormButtonTableViewCell: FormTableViewCell {
     func buttonTouchedUpInside(sender: UIButton) {
         delegate?.formCell?(self, didTouchUpInsideButton: sender)
         
-        for action in actions {
-            action.closure(value: value)
+        if let action = action {
+            action(cell: self, value: value)
         }
     }
 }
