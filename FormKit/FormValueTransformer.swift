@@ -12,7 +12,7 @@ import Foundation
 
 open class FormValueTransformer: ValueTransformer {
     
-    public typealias closureAlias = (_ value: AnyObject?) -> AnyObject?
+    public typealias closureAlias = (_ value: Any?) -> Any?
     
     var forwardClosure: (closureAlias)?
     var reverseClosure: (closureAlias)?
@@ -23,7 +23,7 @@ open class FormValueTransformer: ValueTransformer {
         super.init()
     }
     
-    public convenience init(forwardClosure: ((_ value: AnyObject?) -> AnyObject?)?, reverseClosure: ((_ value: AnyObject?) -> AnyObject?)?) {
+    public convenience init(forwardClosure: ((_ value: Any?) -> Any?)?, reverseClosure: ((_ value: Any?) -> Any?)?) {
         self.init()
         
         self.forwardClosure = forwardClosure
@@ -61,7 +61,7 @@ open class FormValueTransformer: ValueTransformer {
     
     open override func transformedValue(_ value: Any?) -> Any? {
         if let forwardClosure = forwardClosure {
-            return forwardClosure(value as AnyObject?)
+            return forwardClosure(value as Any?)
         }
         return nil
     }
@@ -77,7 +77,7 @@ open class FormReversibleValueTransformer: FormValueTransformer {
     
     open override func reverseTransformedValue(_ value: Any?) -> Any? {
         if let reverseClosure = reverseClosure {
-            return reverseClosure(value as AnyObject?)
+            return reverseClosure(value as Any?)
         }
         return nil
     }

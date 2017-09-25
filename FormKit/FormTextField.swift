@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import UIKit
 
 public protocol FormTextFieldDataSource {
     func formTextFieldShouldResignFirstResponder(_ sender: FormTextField) -> Bool

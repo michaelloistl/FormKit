@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import UIKit
 
 open class FormTextViewTableViewCell: FormTextInputTableViewCell, NSLayoutManagerDelegate, UITextViewDelegate {
     
@@ -18,6 +17,9 @@ open class FormTextViewTableViewCell: FormTextInputTableViewCell, NSLayoutManage
             placeholderLabel.text = placeholder
         }
     }
+    
+    open var didChangeSelection: (_ textView: UITextView) -> Void = { _ in }
+    open var shouldChangeText: (_ textView: UITextView, _ range: NSRange, _ replacementText: String) -> Bool = { _ in return true }
     
     var placeholderLabelOffset = UIOffset.zero
     
@@ -34,7 +36,7 @@ open class FormTextViewTableViewCell: FormTextInputTableViewCell, NSLayoutManage
         _textView.delegate = self
         _textView.dataSource = self
         _textView.font = self.textLabel?.font
-        _textView.backgroundColor = UIColor.clear
+        _textView.backgroundColor = .clear
         
         _textView.contentInset = UIEdgeInsets.zero
         _textView.textContainerInset = UIEdgeInsets.zero
@@ -46,7 +48,7 @@ open class FormTextViewTableViewCell: FormTextInputTableViewCell, NSLayoutManage
     open lazy var placeholderLabel: UILabel = {
         let _label = UILabel(forAutoLayout: ())
         _label.font = self.textLabel?.font
-        _label.textColor = UIColor.lightGray
+        _label.textColor = .lightGray
         
         return _label
     }()
@@ -112,10 +114,12 @@ open class FormTextViewTableViewCell: FormTextInputTableViewCell, NSLayoutManage
         return textView.isFirstResponder
     }
     
+    @discardableResult
     override open func becomeFirstResponder() -> Bool {
         return textView.becomeFirstResponder()
     }
     
+    @discardableResult
     override open func resignFirstResponder() -> Bool {
         return textView.resignFirstResponder()
     }
@@ -148,22 +152,30 @@ open class FormTextViewTableViewCell: FormTextInputTableViewCell, NSLayoutManage
     // MARK: UITextViewDelegate
     
     open func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
+        var shouldChange = true
         if text == "\n" {
             if textView.returnKeyType == .next {
                 nextFormTableViewCell()
             }
-            
-            return allowLineBreak
+            shouldChange = allowLineBreak
         }
         
-        return true
+        if shouldChange {
+            shouldChange = shouldChangeText(textView, range, text)
+        }
+        
+        return shouldChange
     }
-    
+
+    open func textViewDidChangeSelection(_ textView: UITextView) {
+        didChangeSelection(textView)
+    }
+
     open func textViewDidChange(_ textView: UITextView) {
         
         layoutSubviews()
         
-        value = textView.text as AnyObject?
+        value = textView.text as Any?
 
         updateCharacterLabelWithCharacterCount(textView.text?.characters.count ?? 0)
         

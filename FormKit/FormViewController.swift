@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import UIKit
 
 open class FormViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, FormManagerDelegate, FormTableViewCellDelegate, FormSelectionTableViewControllerDelegate {
     
@@ -44,6 +43,8 @@ open class FormViewController: UIViewController, UITableViewDataSource, UITableV
 
         _tableView.tableFooterView = UIView()
         _tableView.rowHeight = UITableViewAutomaticDimension
+        
+        _tableView.restorationIdentifier = "TableView"
         
         return _tableView
     }()
@@ -199,7 +200,11 @@ open class FormViewController: UIViewController, UITableViewDataSource, UITableV
         
     }
     
-    open func formCell(_ sender: FormTableViewCell, didChangeValue value: AnyObject?) {
+    open func formCell(_ sender: FormTableViewCell, didChangeValue value: Any?) {
+        
+    }
+    
+    open func formCell(_ sender: FormTableViewCell, isValid: Bool, errors: [String]) {
         
     }
     
@@ -278,9 +283,9 @@ open class FormViewController: UIViewController, UITableViewDataSource, UITableV
     
     // MARK: FormSelectionTableViewControllerDelegate
     
-    open func formSelectionTableViewController(_ sender: FormSelectionTableViewController, didSelectObjects objects: [AnyObject], withFormTableViewCellIdentifier identifier: String?) {
+    open func formSelectionTableViewController(_ sender: FormSelectionTableViewController, didSelectObjects objects: [Any], withFormTableViewCellIdentifier identifier: String?) {
         if let identifier = identifier, let formCell = formManager.formCellWithIdentifier(identifier) {
-            formCell.value = objects as AnyObject
+            formCell.value = objects as Any
         }
     }
     

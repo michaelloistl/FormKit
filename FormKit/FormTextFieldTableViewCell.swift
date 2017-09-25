@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import UIKit
 
 open class FormTextFieldTableViewCell: FormTextInputTableViewCell, UITextFieldDelegate, FormTextFieldDataSource {
     
@@ -18,7 +17,7 @@ open class FormTextFieldTableViewCell: FormTextInputTableViewCell, UITextFieldDe
         _textField.delegate = self
         _textField.dataSource = self
         _textField.addTarget(self, action: #selector(textFieldDidChange(_:)), for: .editingChanged)
-        _textField.backgroundColor = UIColor.clear
+        _textField.backgroundColor = .clear
         _textField.returnKeyType = .next
         
         return _textField
@@ -69,10 +68,12 @@ open class FormTextFieldTableViewCell: FormTextInputTableViewCell, UITextFieldDe
         return textField.isFirstResponder
     }
     
+    @discardableResult
     override open func becomeFirstResponder() -> Bool {
         return textField.becomeFirstResponder()
     }
     
+    @discardableResult
     override open func resignFirstResponder() -> Bool {
         return textField.resignFirstResponder()
     }
@@ -125,7 +126,7 @@ open class FormTextFieldTableViewCell: FormTextInputTableViewCell, UITextFieldDe
     }
     
     open func textFieldDidChange(_ textField: UITextField) {
-        value = textField.text as AnyObject?
+        value = textField.text as Any?
         updateCharacterLabelWithCharacterCount(textField.text?.characters.count ?? 0)
     }
     

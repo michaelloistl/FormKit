@@ -7,14 +7,13 @@
 //
 
 import Foundation
-import UIKit
 
 open class FormButtonTableViewCell: FormTableViewCell {
     
     open lazy var button: UIButton = {
         let _button = UIButton(forAutoLayout: ())
         _button.addTarget(self, action: #selector(buttonTouchedUpInside(_:)), for: .touchUpInside)
-        _button.setTitleColor(UIColor.black, for: UIControlState())
+        _button.setTitleColor(.black, for: .normal)
         
         return _button
     }()

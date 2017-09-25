@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import UIKit
 
 open class FormDatePickerTableViewCell: FormTextFieldTableViewCell {
     
@@ -34,7 +33,7 @@ open class FormDatePickerTableViewCell: FormTextFieldTableViewCell {
         selectionStyle = .none
         
         textField.inputView = datePicker
-        textField.tintColor = UIColor.clear
+        textField.tintColor = .clear
         textField.inputAccessoryView = keyboardAccessoryView
     }
     
@@ -54,8 +53,8 @@ open class FormDatePickerTableViewCell: FormTextFieldTableViewCell {
     
     // MARK: Methods
         
-    func datePickerDidChangeValue(_ datePicker: UIDatePicker) {
-        value = datePicker.date as AnyObject?
+    func datePickerDidChangeValue(_ datePicker: UIDatePicker) {       
+        value = datePicker.date as Any?
     }
     
     // MARK: FormTableViewCellProtocol

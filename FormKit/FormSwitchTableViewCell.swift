@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import UIKit
 
 open class FormSwitchTableViewCell: FormTableViewCell {
     
@@ -59,13 +58,14 @@ open class FormSwitchTableViewCell: FormTableViewCell {
     // MARK: Actions
     
     func switchDidChangeValue(_ sender: UISwitch) {
-        value = sender.isOn as AnyObject?
+        value = sender.isOn as Any?
     }
     
     // MARK: FormTableViewCellProtocol
     
     override open func updateUI() {
         switchView.isOn = value as? Bool ?? false
+        switchView.isEnabled = editable
     }
     
     override open func isEmpty() -> Bool {

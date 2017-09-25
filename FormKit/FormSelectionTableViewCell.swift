@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import UIKit
 
 //protocol FormSelectionProtocol {
 //    var dataSourceClosure: FormSelectionTableViewCell.DataSourceClosure? { get set }

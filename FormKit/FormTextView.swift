@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import UIKit
 
 public protocol FormTextViewDataSource {
     func formTextViewMinHeight(_ sender: FormTextView) -> CGFloat

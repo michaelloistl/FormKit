@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import UIKit
 
 public protocol FormManagerDelegate {
     func formManagerDidSetFormSections(_ sender: FormManager)
@@ -103,8 +102,8 @@ open class FormManager: NSObject {
         return nil
     }
     
-    open func section(_ section: Int) -> AnyObject? {
-        return visibleFormSections[section] as AnyObject?
+    open func section(_ section: Int) -> Any? {
+        return visibleFormSections[section] as Any?
     }
     
     open func setupAllFormCells() {
@@ -232,8 +231,8 @@ open class FormManager: NSObject {
     }
     
     open func cellForRowAtIndexPath(_ indexPath: IndexPath) -> FormTableViewCell {
-        let section = visibleFormSections[(indexPath as NSIndexPath).section]
-        let formCell = section[(indexPath as NSIndexPath).row]
+        let section = visibleFormSections[indexPath.section]
+        let formCell = section[indexPath.row]
         return formCell
     }
     

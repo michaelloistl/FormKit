@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import UIKit
 import PureLayout
 
 open class FormTextInputTableViewCell: FormTableViewCell {
@@ -116,7 +115,7 @@ open class FormTextInputTableViewCell: FormTableViewCell {
     
     override open func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         super.touchesBegan(touches, with: event)
-        let _ = becomeFirstResponder()
+        becomeFirstResponder()
     }
 
     // MARK: - Methods

@@ -9,7 +9,7 @@
 import Foundation
 
 public protocol FormSelectionTableViewControllerDelegate {
-    func formSelectionTableViewController(_ sender: FormSelectionTableViewController, didSelectObjects objects: [AnyObject], withFormTableViewCellIdentifier identifier: String?)
+    func formSelectionTableViewController(_ sender: FormSelectionTableViewController, didSelectObjects objects: [Any], withFormTableViewCellIdentifier identifier: String?)
     func formSelectionTableViewController(_ sender: FormSelectionTableViewController,  tableView: UITableView, willDisplayCell cell: UITableViewCell, forRowAtIndexPath indexPath: IndexPath)
 }
 
@@ -98,7 +98,7 @@ open class FormSelectionTableViewController: UITableViewController  {
     
     override open func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let tableViewCell = tableView.dequeueReusableCell(withIdentifier: CellIdentifier, for: indexPath)
-        tableViewCell.textLabel?.text = formSelectionTableViewCell?.dataSourceClosure?()[(indexPath as NSIndexPath).section][(indexPath as NSIndexPath).row]
+        tableViewCell.textLabel?.text = formSelectionTableViewCell?.dataSourceClosure?()[indexPath.section][indexPath.row]
         tableViewCell.selectionStyle = (allowsMultipleSelection) ? .none : .default
         tableViewCell.accessoryType = (selectedIndexPath.contains(indexPath)) ? .checkmark : .none
 
